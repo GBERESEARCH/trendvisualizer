@@ -1,0 +1,10 @@
+# Needed packages / versions
+norgatedata==1.0.44
+pandas==1.0.0
+numpy==1.16.2
+matplotlib==3.0.3
+TA-Lib==0.4.17
+requests==2.21.0
+yahoofinancials==1.5
+
+
