@@ -12,6 +12,7 @@ from matplotlib.dates import MO, AutoDateLocator, WeekdayLocator, MonthLocator
 from yahoofinancials import YahooFinancials
 
 
+# lists of parameters for each of the trend flags calculated in create_fields function
 df_ma_list = [10, 20, 30, 50, 200]
 df_macd_params = [12, 26, 9]
 df_adx_list = [14, 20, 50, 200]
@@ -20,8 +21,10 @@ df_price_cross_list = [20, 50, 200]
 df_rsi_list = [14]
 df_atr_list = [14]
 
+# list of the individual trend flag lists
 trend_flag_list = [df_ma_list, df_macd_params, df_adx_list, df_ma_cross_list, df_price_cross_list, df_rsi_list, df_atr_list]
 
+# list of default trend flags to be used if no alternatives are supplied
 default_trend_flags = ['MA_10_30',
                        'MACD_flag',               
                        'PX_MA_20',
