@@ -333,9 +333,7 @@ class DataProcess():
         plt.tight_layout()
         plt.show()
         
-        return fig
-
-
+        
     @timethis
     def return_graph(self, tenor):
         """
@@ -408,9 +406,7 @@ class DataProcess():
         plt.tight_layout()
         plt.show()    
         
-        return fig
-
-    
+            
     @timethis
     def market_chart(self, ticker_dict=None, ticker_short_name_dict=None, data_list=None, days=60, norm=True):
         """
@@ -533,9 +529,7 @@ class DataProcess():
         # general title
         plt.suptitle("Top and Bottom Trending Markets", fontsize=13, fontweight=0, color='black', style='italic', y=1.02)
         
-        return fig    
-      
-
+        
     @timethis    
     def ticker_extract(self):
         """
