@@ -2,7 +2,7 @@ from setuptools import setup
 
 setup(name='tools',
       version='0.0.1',
-      description='EDA Tools',
+      description='Trend Barometer Tools',
       author='...',
       author_email='...',
       packages=['tools'],
