@@ -397,8 +397,14 @@ class DataProcess():
         ax.yaxis.set_label_position('right')
         ax.yaxis.tick_right()
         
+        # Set x and y labels and title
+        xlabel = 'Date'
+        ylabel = 'Return'
+        title = 'Relative return in last '+str(tenor)+' days'
+        ax.set(xlabel=xlabel, ylabel=ylabel, title=title)
+        
         # Set the legend 
-        plt.legend(loc='upper left', labels=tenor.columns)
+        ax.legend()
         
         # Set xtick labels at 70 degrees
         plt.xticks(rotation=70)
