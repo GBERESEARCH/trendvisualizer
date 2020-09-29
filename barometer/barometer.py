@@ -386,8 +386,12 @@ class DataProcess():
         ax.tick_params(which='minor', length=4)
         
         # Set prices to the right as we are concerned with the current level
+        ax.yaxis.set_major_locator(plt.MaxNLocator(11))
         ax.yaxis.set_label_position('right')
         ax.yaxis.tick_right()
+        
+        # Shift label to avoid overlapping tick marks
+        ax.yaxis.labelpad = 40
         
         # Set x and y labels and title
         ax.set_xlabel('Date', fontsize=18)
