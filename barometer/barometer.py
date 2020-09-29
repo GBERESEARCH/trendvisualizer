@@ -405,7 +405,8 @@ class DataProcess():
         plt.yticks(fontsize=15)
         
         # Set title
-        plt.suptitle('Relative return in last '+str(len(tenor))+' days', fontsize=25, fontweight=0, color='black', style='italic', y=1.02)        
+        plt.suptitle('Relative Return Over Last '+str(len(tenor))+' Trading Days', 
+                     fontsize=25, fontweight=0, color='black', style='italic', y=1.02)        
         
         plt.show()    
         
@@ -440,6 +441,7 @@ class DataProcess():
         
         # Initialize the figure
         fig, ax = plt.subplots(figsize=(16,16))
+        fig.subplots_adjust(top=0.85)
         plt.tight_layout()
         plt.style.use('seaborn-darkgrid')
     
@@ -523,9 +525,16 @@ class DataProcess():
             
             # Set xtick labels at 70 degrees
             plt.xticks(rotation=70)
-    
+        
+        if norm == False:
+            charttitle = "Top and Bottom Trending Markets - Price Over Last "+str(days)+' Trading Days'
+        if norm == True:
+            charttitle = "Top and Bottom Trending Markets - Relative Return Over Last "+str(days)+' Trading Days'
+        
         # general title
-        plt.suptitle("Top and Bottom Trending Markets", fontsize=25, fontweight=0, color='black', style='italic', y=1.02)
+        st = fig.suptitle(charttitle, fontsize=25, fontweight=0, color='black', style='italic', y=1.02)
+        st.set_y(0.95)
+        fig.subplots_adjust(top=0.9)
         
    
     def tickerextract(self):
