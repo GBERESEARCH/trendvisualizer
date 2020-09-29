@@ -1,65 +1,44 @@
 import norgatedata
 import requests
 import talib
-import time
 import matplotlib.dates as mdates
 import matplotlib.pyplot as plt
 import numpy as np
 import pandas as pd
-from functools import wraps
 from matplotlib.ticker import MaxNLocator, AutoMinorLocator
-from matplotlib.dates import MO, AutoDateLocator, WeekdayLocator, MonthLocator
+from matplotlib.dates import MO, WeekdayLocator, MonthLocator
 from yahoofinancials import YahooFinancials
 
+# Dictionary containing all the default parameters
+df_dict = {# lists of parameters for each of the trend flags calculated in fields function
+           'df_ma_list':[10, 20, 30, 50, 200],
+           'df_macd_params':[12, 26, 9],
+           'df_adx_list':[14, 20, 50, 200],
+           'df_ma_cross_list':[(10, 30), (20, 50), (50, 200)],
+           'df_price_cross_list':[20, 50, 200],
+           'df_rsi_list':[14],
+           'df_atr_list':[14],
 
-# lists of parameters for each of the trend flags calculated in create_fields function
-df_ma_list = [10, 20, 30, 50, 200]
-df_macd_params = [12, 26, 9]
-df_adx_list = [14, 20, 50, 200]
-df_ma_cross_list = [[10, 30], [20, 50], [50, 200]]
-df_price_cross_list = [20, 50, 200]
-df_rsi_list = [14]
-df_atr_list = [14]
+            # list of the individual trend flag lists
+            'df_trend_flag_list':['df_ma_list', 
+                                  'df_macd_params', 
+                                  'df_adx_list', 
+                                  'df_ma_cross_list', 
+                                  'df_price_cross_list', 
+                                  'df_rsi_list', 
+                                  'df_atr_list'],
 
-# list of the individual trend flag lists
-trend_flag_list = [df_ma_list, df_macd_params, df_adx_list, df_ma_cross_list, df_price_cross_list, df_rsi_list, df_atr_list]
-
-# list of default trend flags to be used if no alternatives are supplied
-default_trend_flags = ['MA_10_30',
-                       'MACD_flag',               
-                       'PX_MA_20',
-                       'MA_20_50',
-                       'ADX_20_flag',
-                       'PX_MA_50',
-                       'MA_50_200',
-                       'ADX_50_flag',
-                       'PX_MA_200',
-                       'ADX_200_flag']
-
-
-def timethis(func):
-    """
-    Timing decorator to provide running time of functions in milliseconds
-
-    Parameters
-    ----------
-    func : Function
-        Function to be evaluated
-
-    Returns
-    -------
-    Time
-        Prints the time the function took to run, in milliseconds
-
-    """
-    @wraps(func)
-    def wrapper(*args, **kwargs):
-        start = time.perf_counter()
-        r = func(*args, **kwargs)
-        end = time.perf_counter()
-        print('{}.{} : {} milliseconds'.format(func.__module__, func.__name__, (end - start)*1e3))
-        return r
-    return wrapper
+            # list of default trend flags to be used if no alternatives are supplied
+            'df_trend_flags':['MA_10_30',
+                              'MACD_flag',               
+                              'PX_MA_20',
+                              'MA_20_50',
+                              'ADX_20_flag',
+                              'PX_MA_50',
+                              'MA_50_200',
+                              'ADX_50_flag',
+                              'PX_MA_200',
+                              'ADX_200_flag']}
 
 
 class DataProcess():
@@ -69,9 +48,8 @@ class DataProcess():
     def __init__(self, *args, **kwargs):
         pass
 
-    
-    @timethis
-    def create_fields(self, ticker_dict, ma_list, macd_params, adx_list, ma_cross_list, price_cross_list, rsi_list, atr_list):
+
+    def fields(self, ticker_dict, ma_list, macd_params, adx_list, ma_cross_list, price_cross_list, rsi_list, atr_list):
         """
         Create and add various trend indicators to each DataFrame in the dictionary of tickers 
         
@@ -131,8 +109,7 @@ class DataProcess():
         return ticker_dict
 
 
-    @timethis
-    def create_barometer(self, ticker_dict=None, ticker_name_dict=None, trend_flags=default_trend_flags):
+    def createbarometer(self, ticker_dict=None, ticker_name_dict=None, trend_flags=None):
         """
         Create a DataFrame showing the strength of trend for selected markets.
 
@@ -155,6 +132,8 @@ class DataProcess():
             ticker_dict = self.ticker_dict
         if ticker_name_dict is None:
             ticker_name_dict = self.ticker_name_dict
+        if trend_flags is None:
+            trend_flags = self.trend_flags
         
         # Create list of tickers from ticker_dict
         ticker_list = [ticker for ticker, df in ticker_dict.items()]
@@ -184,13 +163,24 @@ class DataProcess():
         # Create short name column, stripping text from longname 
         frame['Short_name'] = frame.loc[:,'Long_name'].str.replace('Continuous Futures Backadjusted','')
         
+        # Create trend strength color column
+        def col_color(row):
+            if row['Trend Strength'] < 4:
+                row['Trend Color'] = 'red'
+            elif row['Trend Strength'] < 7:
+                row['Trend Color'] = 'orange'
+            else:
+                row['Trend Color'] = 'green'
+            return row
+       
+        frame = frame.apply(lambda x: col_color(x), axis=1)
+        
         self.barometer = frame
         
         return self
 
 
-    @timethis
-    def prepare_chart_data(self, barometer=None, ticker_dict=None, ticker_short_name_dict=None, mkts=5, up='Both'):
+    def prepdata(self, barometer=None, ticker_dict=None, ticker_short_name_dict=None, mkts=5, up='Both'):
         """
         Create a time series of closing prices for selected markets.
 
@@ -256,8 +246,7 @@ class DataProcess():
         return self
 
 
-    @timethis
-    def norm_hist(self, chart_data=None, days=60):
+    def normalise(self, chart_data=None, days=60):
         """
         Create a subset of chart_prep dataset normalized to start from 100 for the specified history window
 
@@ -287,8 +276,7 @@ class DataProcess():
         return tenor    
 
 
-    @timethis
-    def trend_barchart(self, barometer=None, mkts=20, top=True):
+    def trendbarchart(self, barometer=None, mkts=20, top=True):
         """
         Create a barchart of the most or least trending markets.
 
@@ -312,6 +300,7 @@ class DataProcess():
         
         # Initialize the figure
         fig, ax = plt.subplots()
+        plt.tight_layout()
         
         # Set the xticks to be integer values
         ax.xaxis.set_major_locator(MaxNLocator(integer=True))
@@ -321,21 +310,27 @@ class DataProcess():
         
         # If the markets flag is set to False, show the markets with lowest trend indication
         if top == False:
-            plt.barh(barometer['Short_name'][-mkts:], barometer['Trend Strength'][-mkts:])
+            plt.barh(barometer['Short_name'][-mkts:], barometer['Trend Strength'][-mkts:], 
+                     color=list(barometer['Trend Color'][-mkts:]))
+            titlestr = 'Bottom'
         
         # Otherwise show the markets with greatest trend indication 
         else:
-            plt.barh(barometer['Short_name'][:mkts], barometer['Trend Strength'][:mkts])
+            plt.barh(barometer['Short_name'][:mkts], barometer['Trend Strength'][:mkts], 
+                     color=list(barometer['Trend Color'][:mkts]))
+            titlestr = 'Top'
         
         # Label xaxis
         plt.xlabel("Trend Strength") 
         
-        plt.tight_layout()
+        # Set title
+        plt.suptitle(titlestr+' '+str(mkts)+' trending markets', fontsize=12, fontweight=0, 
+                     color='black', style='italic', y=1.02)        
+                
         plt.show()
         
         
-    @timethis
-    def return_graph(self, tenor):
+    def returnsgraph(self, tenor):
         """
         Create a line graph of price history produced by the norm_hist function
 
@@ -352,6 +347,7 @@ class DataProcess():
         """
         # Initialize the figure
         plt.style.use('seaborn-darkgrid')
+        plt.tight_layout()
         fig, ax = plt.subplots(figsize=(16,8))
         
         # Plot the lineplot
@@ -363,11 +359,9 @@ class DataProcess():
         month_scaler = int(round(len(tenor) / 120))
      
         # Set major xticks as every 4th Monday or monthly at a specified interval
-        #major_tick = WeekdayLocator(byweekday=MO, interval = 4)
         scale_week_tick = WeekdayLocator(byweekday=MO, interval=week_scaler)
         scale_month_tick = MonthLocator(interval=month_scaler)
-        #auto_date = AutoDateLocator(maxticks=6)
-        
+               
         # Set axis format as DD-MMM-YYYY or MMM-YYYY
         daysFmt = mdates.DateFormatter('%d-%b-%Y')
         monthsFmt = mdates.DateFormatter('%b-%Y')
@@ -376,9 +370,7 @@ class DataProcess():
         if len(tenor) < 90:
             ax.xaxis.set_major_formatter(daysFmt)
             ax.xaxis.set_major_locator(scale_week_tick)
-            #ax.xaxis.set_major_locator(auto_date)
-            #ax.xaxis.set_major_locator(major_tick)
-        
+                   
         # Otherwise use month format and locate major xticks at monthly (or greater) intervals
         else:
             ax.xaxis.set_major_formatter(monthsFmt)
@@ -398,23 +390,23 @@ class DataProcess():
         ax.yaxis.tick_right()
         
         # Set x and y labels and title
-        xlabel = 'Date'
-        ylabel = 'Return'
-        title = 'Relative return in last '+str(tenor)+' days'
-        ax.set(xlabel=xlabel, ylabel=ylabel, title=title)
+        ax.set_xlabel('Date', fontsize=18)
+        ax.set_ylabel('Return', fontsize=18, rotation=0)
         
         # Set the legend 
-        ax.legend()
+        plt.legend(loc='upper left', labels=tenor.columns)
         
-        # Set xtick labels at 70 degrees
-        plt.xticks(rotation=70)
+        # Set xtick labels at 45 degrees and fontsize of x and y ticks to 15
+        plt.xticks(rotation=45, fontsize=15)
+        plt.yticks(fontsize=15)
         
-        plt.tight_layout()
+        # Set title
+        plt.suptitle('Relative return in last '+str(len(tenor))+' days', fontsize=25, fontweight=0, color='black', style='italic', y=1.02)        
+        
         plt.show()    
         
-            
-    @timethis
-    def market_chart(self, ticker_dict=None, ticker_short_name_dict=None, data_list=None, days=60, norm=True):
+   
+    def marketchart(self, ticker_dict=None, ticker_short_name_dict=None, data_list=None, days=60, norm=True):
         """
         Create a chart showing the top and bottom 20 trending markets.
 
@@ -495,11 +487,9 @@ class DataProcess():
             month_scaler = int(round(days / 120))
             
             # Set major xticks as every 4th Monday or monthly at a specified interval  
-            #major_tick = WeekdayLocator(byweekday=MO, interval = 4)
             scale_week_tick = WeekdayLocator(byweekday=MO, interval=week_scaler)
             scale_month_tick = MonthLocator(interval=month_scaler)
-            #auto_date = AutoDateLocator(maxticks=6)
-            
+                        
             # Set axis format as DD-MMM-YYYY or MMM-YYYY
             daysFmt = mdates.DateFormatter('%d-%b-%Y')
             monthsFmt = mdates.DateFormatter('%b-%Y')
@@ -507,10 +497,8 @@ class DataProcess():
             # If less than 90 days history use day format and locate major xticks on 4th Monday
             if days < 90:
                 ax.xaxis.set_major_formatter(daysFmt)
-                #ax.xaxis.set_major_locator(auto_date)
                 ax.xaxis.set_major_locator(scale_week_tick)
-                #ax.xaxis.set_major_locator(major_tick)
-                
+                                
             # Otherwise use month format and locate major xticks at monthly (or greater) intervals    
             else:
                 ax.xaxis.set_major_formatter(monthsFmt)
@@ -533,11 +521,10 @@ class DataProcess():
             plt.xticks(rotation=70)
     
         # general title
-        plt.suptitle("Top and Bottom Trending Markets", fontsize=13, fontweight=0, color='black', style='italic', y=1.02)
+        plt.suptitle("Top and Bottom Trending Markets", fontsize=25, fontweight=0, color='black', style='italic', y=1.02)
         
-        
-    @timethis    
-    def ticker_extract(self):
+   
+    def tickerextract(self):
         """
         Extract list of S&P 500 Companies from Wikipedia.
 
@@ -566,7 +553,7 @@ class DataProcess():
         return tickers, ticker_name_dict    
 
 
-    def return_data(self, ticker, start_date, end_date, freq='daily'):
+    def returndata(self, ticker, start_date, end_date, freq='daily'):
         """
         Create DataFrame of historic prices for specified ticker.
 
@@ -609,8 +596,7 @@ class DataProcess():
         return df
 
 
-    @timethis
-    def import_data_norgate(self, tickers, lookback):
+    def importnorgate(self, tickers, lookback):
         """
         Return dictionary of price histories from Norgate Data.
 
@@ -638,6 +624,7 @@ class DataProcess():
         
         # Loop through list of tickers
         for ticker in tickers:
+            
             # Append 'c_' to each ticker to avoid labels starting with a number and create lowercase value
             tick = "c_"+ticker[1:]
             lowtick = tick.lower()
@@ -657,12 +644,15 @@ class DataProcess():
 
 
 
-
 class DataSetNorgate(DataProcess):
-    def __init__(self, tickers, lookback=500, trend_flags=default_trend_flags, 
-                 ma_list=df_ma_list, macd_params=df_macd_params, adx_list=df_adx_list,
-                 ma_cross_list=df_ma_cross_list, price_cross_list=df_price_cross_list, 
-                 rsi_list=df_rsi_list, atr_list=df_atr_list):
+    
+    
+    def __init__(self, tickers, lookback=500, trend_flags=df_dict['df_trend_flags'], 
+                 ma_list=df_dict['df_ma_list'], macd_params=df_dict['df_macd_params'], 
+                 adx_list=df_dict['df_adx_list'], ma_cross_list=df_dict['df_ma_cross_list'], 
+                 price_cross_list=df_dict['df_price_cross_list'], rsi_list=df_dict['df_rsi_list'], 
+                 atr_list=df_dict['df_atr_list'], df_dict=df_dict):
+        
         # Inherit methods from DataProcess class
         super().__init__(self)
         
@@ -670,38 +660,51 @@ class DataSetNorgate(DataProcess):
         self.tickers = tickers
         self.lookback = lookback
         self.trend_flags = trend_flags
-        self.ma_list = df_ma_list
-        self.macd_params = df_macd_params
-        self.adx_list = df_adx_list
-        self.ma_cross_list = df_ma_cross_list
-        self.price_cross_list = df_price_cross_list
-        self.rsi_list = df_rsi_list
-        self.atr_list = df_atr_list
+        self.ma_list = ma_list
+        self.macd_params = macd_params
+        self.adx_list = adx_list
+        self.ma_cross_list = ma_cross_list
+        self.price_cross_list = price_cross_list
+        self.rsi_list = rsi_list
+        self.atr_list = atr_list
+        self.df_dict = df_dict
 
         
-    def prepare_data_norgate(self):
+    def prepnorgate(self):
+        """
+        Create dataframes of prices, extracting data from Norgatedata. 
+
+        Returns
+        -------
+        Dict, DataFrames
+            Dictionary of DataFrames.
+
+        """
         # Create dictionaries of DataFrames of prices and ticker names
-        self.ticker_dict, self.ticker_name_dict, self.ticker_short_name_dict = self.import_data_norgate(self.tickers, self.lookback)
+        self.ticker_dict, self.ticker_name_dict, self.ticker_short_name_dict = self.importnorgate(self.tickers, self.lookback)
         
         # Add trend fields to each of the DataFrames in ticker_dict
-        self.ticker_dict = self.create_fields(self.ticker_dict, self.ma_list, self.macd_params, 
-                                                 self.adx_list, self.ma_cross_list, self.price_cross_list, 
-                                                 self.rsi_list, self.atr_list)
+        self.ticker_dict = self.fields(self.ticker_dict, self.ma_list, self.macd_params, 
+                                       self.adx_list, self.ma_cross_list, self.price_cross_list, 
+                                       self.rsi_list, self.atr_list)
         
         return self
     
     
 
 class DataSetYahoo(DataProcess):
-    def __init__(self, start_date, end_date, trend_flags=default_trend_flags,
-                 ma_list=df_ma_list, macd_params=df_macd_params, adx_list=df_adx_list,
-                 ma_cross_list=df_ma_cross_list, price_cross_list=df_price_cross_list, 
-                 rsi_list=df_rsi_list, atr_list=df_atr_list):
+    
+    def __init__(self, start_date, end_date, trend_flags=df_dict['df_trend_flags'], 
+                 ma_list=df_dict['df_ma_list'], macd_params=df_dict['df_macd_params'], 
+                 adx_list=df_dict['df_adx_list'], ma_cross_list=df_dict['df_ma_cross_list'], 
+                 price_cross_list=df_dict['df_price_cross_list'], rsi_list=df_dict['df_rsi_list'], 
+                 atr_list=df_dict['df_atr_list'], df_dict=df_dict):
+        
         # Inherit methods from DataProcess class
         super().__init__(self)
         
         # Create list of tickers, dictionary of ticker names from Wikipedia
-        self.tickers, self.ticker_name_dict = self.ticker_extract()
+        self.tickers, self.ticker_name_dict = self.tickerextract()
         
         # Set short_name_dict = name_dict
         self.ticker_short_name_dict = self.ticker_name_dict
@@ -710,29 +713,38 @@ class DataSetYahoo(DataProcess):
         self.start_date = start_date
         self.end_date = end_date
         self.trend_flags = trend_flags
-        self.ma_list = df_ma_list
-        self.macd_params = df_macd_params
-        self.adx_list = df_adx_list
-        self.ma_cross_list = df_ma_cross_list
-        self.price_cross_list = df_price_cross_list
-        self.rsi_list = df_rsi_list
-        self.atr_list = df_atr_list
+        self.ma_list = ma_list
+        self.macd_params = macd_params
+        self.adx_list = adx_list
+        self.ma_cross_list = ma_cross_list
+        self.price_cross_list = price_cross_list
+        self.rsi_list = rsi_list
+        self.atr_list = atr_list
+        self.df_dict = df_dict
 
 
-    def prepare_data_yahoo(self):
+    def prepyahoo(self):
+        """
+        Create dataframes of prices, extracting data from Yahoo Finance. 
+
+        Returns
+        -------
+        Dict, DataFrames
+            Dictionary of DataFrames.
+
+        """
         # Create dictionaries of DataFrames of prices and ticker names
-        self.ticker_dict, self.exceptions = self.import_data_yahoo_financials(self.tickers, self.start_date, self.end_date, mkts=None)
+        self.ticker_dict, self.exceptions = self.importyahoo(self.tickers, self.start_date, self.end_date, mkts=None)
         
         # Add trend fields to each of the DataFrames in ticker_dict
-        self.ticker_dict = self.create_fields(self.ticker_dict, self.ma_list, self.macd_params, 
+        self.ticker_dict = self.fields(self.ticker_dict, self.ma_list, self.macd_params, 
                                                  self.adx_list, self.ma_cross_list, self.price_cross_list, 
                                                  self.rsi_list, self.atr_list)
              
         return self
 
 
-    @timethis                                                          
-    def import_data_yahoo_financials(self, tickers, start, end, mkts=None):
+    def importyahoo(self, tickers, start, end, mkts=None):
         """
         Return dictionary of price histories from Yahoo Finance.
 
@@ -755,6 +767,7 @@ class DataSetYahoo(DataProcess):
             List of tickers that could not be returned.
 
         """
+        
         # Create empty dictionary and list
         ticker_dict = {}
         exceptions = []
@@ -764,7 +777,7 @@ class DataSetYahoo(DataProcess):
             
             # Attempt to return the data for given ticker
             try:
-                ticker_dict[sym] = super().return_data(ticker=sym,
+                ticker_dict[sym] = super().returndata(ticker=sym,
                                                        start_date=start,
                                                        end_date=end,
                                                        freq='daily')
@@ -773,7 +786,7 @@ class DataSetYahoo(DataProcess):
             except:
                 try:
                     sym = sym.replace('.','-')
-                    ticker_dict[sym] = super().return_data(ticker=sym,
+                    ticker_dict[sym] = super().returndata(ticker=sym,
                                                        start_date=start,
                                                        end_date=end,
                                                        freq='daily')
