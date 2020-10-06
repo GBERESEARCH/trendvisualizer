@@ -1,10 +1,11 @@
 # trendbarometer
-## Measure which markets are more strongly trending. 
+## Measure which markets are more strongly trending and visualize. 
 
 ### The library provides methods to:
   - Extract historical OHLC data for commodities from Norgate Data and S&P 500 from Yahoo Finance.
   - Calculate technical indicators over a range of time periods and aggregate to determine trend strength. 
   - Display charts of markets based on trend strength:
+
 ####	- Bar chart
 ![stock_bar_top](images/stock_bar_top.png)
 ![comm_bar_bottom](images/comm_bar_bottom.png)
