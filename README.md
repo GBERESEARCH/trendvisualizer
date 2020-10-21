@@ -33,7 +33,7 @@ mkt.prepyahoo().createbarometer()
 
 &nbsp;
 
-####	- Display Bar chart
+####	Display Bar chart
 ```
 mkt.trendbarchart(mkt.barometer, 20)
 ```
@@ -58,7 +58,7 @@ norm_1y = mkt.normalise(mkt.chart_data, 250)
 
 &nbsp;
 
-####	- Display Line chart
+####	Display Line chart
 ```
 mkt.returnsgraph(norm_3m)
 ```
@@ -78,7 +78,7 @@ Prepare market data
 ```
 mkt.prepdata(mkts=20)
 ```
-####    - Display Multiple chart grid
+####    Display Multiple chart grid
 ```
 mkt.marketchart(days=60)
 ```
