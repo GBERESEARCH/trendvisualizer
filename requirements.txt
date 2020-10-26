@@ -1,11 +1,12 @@
 # Needed packages / versions
-numpy
-requests
-pandas
-matplotlib
-norgatedata
-yahoofinancials
-spyder
+numpy >= 1.16.2
+requests >= 2.24.0
+pandas >= 1.0.0
+matplotlib >= 3.0.3
+norgatedata >= 1.0.48
+yahoofinancials >= 1.5
+notebook >= 5.7.8
+spyder >= 4.1.5
 
 
 
