@@ -11,11 +11,71 @@
 &nbsp;
 
 ### Installation
-Install via GitHub:
+Install from PyPI:
 ```
-pip install git+https://github.com/GBERESEARCH/trendbarometer
+$ pip install trendbarometer
 ```
-Most of the dependencies are straightforward but installing TA-Lib can sometimes be problematic. 
+Most of the dependencies are straightforward but installing TA-Lib requires a little extra work. 
+
+See [TA Lib README](https://github.com/mrjbq7/ta-lib) for more details.
+
+&nbsp;
+
+To install in new environment using anaconda:
+```
+$ conda create --name trend
+```
+Activate new environment
+```
+$ activate trend
+```
+Install Python
+```
+(trend) $ conda install python
+```
+Install Spyder
+```
+(trend) $ conda install spyder=4
+```
+From the TA Lib README:
+##### Windows
+
+Download [ta-lib-0.4.0-msvc.zip](http://prdownloads.sourceforge.net/ta-lib/ta-lib-0.4.0-msvc.zip)
+and unzip to ``C:\ta-lib``.
+
+> This is a 32-bit binary release.  If you want to use 64-bit Python, you will
+> need to build a 64-bit version of the library. Some unofficial (**and
+> unsupported**) instructions for building on 64-bit Windows 10, here for
+> reference:
+>
+> 1. Download and Unzip ``ta-lib-0.4.0-msvc.zip``
+> 2. Move the Unzipped Folder ``ta-lib`` to ``C:\``
+> 3. Download and Install Visual Studio Community 2015
+>    * Remember to Select ``[Visual C++]`` Feature
+> 4. Build TA-Lib Library
+>    * From Windows Start Menu, Start ``[VS2015 x64 Native Tools Command
+>      Prompt]``
+>    * Move to ``C:\ta-lib\c\make\cdr\win32\msvc``
+>    * Build the Library ``nmake``
+
+Alternatively there are unofficial windows binaries for both 32-bit and 64-bit here:
+
+https://www.lfd.uci.edu/~gohlke/pythonlibs/#ta-lib
+
+These are installed (after downloading) via pip:
+```
+(trend) $ python -m pip install TA_Lib-0.4.17-cp38-cp38-win_amd64.whl 
+```
+
+Install TA-Lib for Python
+```
+(trend) $ python -m pip install TA-Lib 
+```
+
+Install Trend Barometer
+```
+(trend) $ python -m pip install trendbarometer
+```
 
 &nbsp;
 
@@ -23,8 +83,8 @@ Most of the dependencies are straightforward but installing TA-Lib can sometimes
 Import barometer module and initialise a DataSet object
 
 ```
-import barometer as bar
-mkt = vol.DataSetYahoo('2018-08-10', '2020-09-28')
+import trendbarometer.barometer as bar
+mkt = vol.DataSetYahoo('2018-08-10', '2020-10-23')
 ```
 Extract market data, calculate indicators and trend strength
 ```
