@@ -7,7 +7,7 @@ norgatedata >= 1.0.48
 yahoofinancials >= 1.5
 notebook >= 5.7.8
 spyder >= 4.1.5
-
+lxml >=4.3.2
 
 
 
