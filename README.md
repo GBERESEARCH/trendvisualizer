@@ -1,5 +1,5 @@
-# trendbarometer
-## Measure which markets are more strongly trending and visualize. 
+# trendstrength
+## Visualize trend strength across various markets.
 
 &nbsp;
 
@@ -13,7 +13,7 @@
 ### Installation
 Install from PyPI:
 ```
-$ pip install trendbarometer
+$ pip install trendstrength
 ```
 Most of the dependencies are straightforward but installing TA-Lib requires a little extra work. 
 
@@ -72,78 +72,62 @@ Install TA-Lib for Python
 (trend) $ python -m pip install TA-Lib 
 ```
 
-Install Trend Barometer
+Install trendstrength
 ```
-(trend) $ python -m pip install trendbarometer
+(trend) $ python -m pip install trendstrength
 ```
 
 &nbsp;
 
 ### Setup
-Import barometer module and initialise a DataSet object
+Import trend module and initialise a DataSet object
 
 ```
-import trendbarometer.barometer as bar
-mkt = vol.DataSetYahoo('2018-08-10', '2020-10-23')
+import trendstrength.trend as trend
+mkt = trend.DataSetYahoo('2018-08-10', '2020-10-23')
 ```
 Extract market data, calculate indicators and trend strength
 ```
-mkt.prepyahoo().createbarometer()
+mkt.prepyahoo()
 ```
 
 &nbsp;
 
 ####	Display Bar chart
 ```
-mkt.trendbarchart(mkt.barometer, 20)
+mkt.trendbarchart(mkts=20, trend='strong')
 ```
 ![stock_bar_top](images/stock_bar_top.png)
 
 ```
-mkt.trendbarchart(mkt.barometer, 20, top=False)
+mkt.trendbarchart(mkts=20, trend='neutral')
 ```
 ![comm_bar_bottom](images/comm_bar_bottom.png)
 
 &nbsp;
 
-Prepare and normalize data
-```
-mkt.prepdata()
-```
-```
-norm_3m = mkt.normalise(mkt.chart_data, 60) 
-norm_6m = mkt.normalise(mkt.chart_data, 120) 
-norm_1y = mkt.normalise(mkt.chart_data, 250)
-```
-
-&nbsp;
-
 ####	Display Line chart
 ```
-mkt.returnsgraph(norm_3m)
+mkt.returnsgraph(days=60, trend='up')
 ```
 ![stock_60d_line](images/stock_60d_line.png)
 ```
-mkt.returnsgraph(norm_6m)
+mkt.returnsgraph(days=120, trend='down')
 ```
 ![comm_120d_line](images/comm_120d_line.png)
 ```
-mkt.returnsgraph(norm_1y)
+mkt.returnsgraph(days=250, trend='strong')
 ```
 ![stock_250d_line](images/stock_250d_line.png)
 
 &nbsp;
 
-Prepare market data
-```
-mkt.prepdata(mkts=20)
-```
 ####    Display Multiple chart grid
 ```
-mkt.marketchart(days=60)
+mkt.marketchart(days=60, trend='up')
 ```
 ![stock_mkt_return_60d](images/stock_mkt_return_60d.png)
 ```
-mkt.marketchart(days=60, norm=False)
+mkt.marketchart(days=60, trend='strong', norm=False)
 ```
 ![comm_mkt_price_250](images/comm_mkt_price_250.png)  

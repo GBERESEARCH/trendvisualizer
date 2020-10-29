@@ -6,13 +6,13 @@ HERE = pathlib.Path(__file__).parent
 
 version_meta = runpy.run_path("./version.py")
 VERSION = version_meta["__version__"]
-PACKAGE_NAME = 'trendbarometer'
+PACKAGE_NAME = 'trendstrength'
 AUTHOR = 'GBERESEARCH'
 AUTHOR_EMAIL = 'gberesearch@gmail.com'
-URL = 'https://github.com/GBERESEARCH/trendbarometer'
+URL = 'https://github.com/GBERESEARCH/trendstrength'
 
 LICENSE = 'MIT'
-DESCRIPTION = 'Measure trend strength across various markets and visualize.'
+DESCRIPTION = 'Visualize trend strength across various markets.'
 LONG_DESCRIPTION = (HERE / "README.md").read_text()
 LONG_DESC_TYPE = "text/markdown"
 

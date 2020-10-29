@@ -85,6 +85,21 @@ df_dict = {# lists of parameters for each of the trend flags calculated
                 'grid.linestyle':':'
                 },
             
+            'df_mpl_bar_params':{
+                'figure.dpi':100,
+                'axes.edgecolor':'black',
+                'axes.titlepad':15,
+                'axes.xmargin':0.05,
+                'axes.ymargin':0.05,
+                'axes.linewidth':2,
+                'axes.facecolor':(0.8, 0.8, 0.9, 0.5),
+                'xtick.major.pad':10,
+                'ytick.major.pad':10,
+                'lines.linewidth':3.0,
+                'grid.color':'black',
+                'grid.linestyle':':'
+                },            
+            
             'df_mkts':5,
             'df_trend':'strong',
             'df_days':60,
@@ -569,7 +584,7 @@ class DataProcess():
         
         # Initialize the figure
         plt.style.use('seaborn-darkgrid')
-        plt.rcParams.update(self.mpl_line_params)
+        plt.rcParams.update(self.mpl_bar_params)
         fig, ax = plt.subplots()
         plt.tight_layout()
         
@@ -903,17 +918,60 @@ class DataProcess():
             # Set xtick labels at 70 degrees
             plt.xticks(rotation=70)
         
-        
+        # Update chart title based on whether the data is normalized 
+        # and the chosen trend type to display
         if norm:
-            charttitle = ("Top and Bottom Trending Markets" 
-                          +" - Relative Return Over Last "
-                          +str(days)+' Trading Days')
+            if trend == 'up':
+                charttitle = ("Up Trending Markets" 
+                              +" - Relative Return Over Last "
+                              +str(days)+' Trading Days')
+            
+            if trend == 'down':
+                charttitle = ("Down Trending Markets" 
+                              +" - Relative Return Over Last "
+                              +str(days)+' Trading Days')
+
+            if trend == 'strong':
+                charttitle = ("Up and Down Trending Markets" 
+                              +" - Relative Return Over Last "
+                              +str(days)+' Trading Days')
+
+            if trend == 'neutral':
+                charttitle = ("Neutral Trending Markets" 
+                              +" - Relative Return Over Last "
+                              +str(days)+' Trading Days')
+
+            if trend == 'all':
+                charttitle = ("Up, Down and Neutral Trending Markets" 
+                              +" - Relative Return Over Last "
+                              +str(days)+' Trading Days')
                 
         else:
-            charttitle = ("Top and Bottom Trending Markets"
-                          +" - Price Over Last "
-                          +str(days)+' Trading Days')        
-        
+            if trend == 'up':
+                charttitle = ("Up Trending Markets" 
+                              +" - Price Over Last "
+                              +str(days)+' Trading Days')
+            
+            if trend == 'down':
+                charttitle = ("Down Trending Markets" 
+                              +" - Price Over Last "
+                              +str(days)+' Trading Days')
+
+            if trend == 'strong':
+                charttitle = ("Up and Down Trending Markets" 
+                              +" - Price Over Last "
+                              +str(days)+' Trading Days')
+
+            if trend == 'neutral':
+                charttitle = ("Neutral Trending Markets" 
+                              +" - Price Over Last "
+                              +str(days)+' Trading Days')
+
+            if trend == 'all':
+                charttitle = ("Up, Down and Neutral Trending Markets" 
+                              +" - Price Over Last "
+                              +str(days)+' Trading Days')            
+       
         # general title
         st = fig.suptitle(charttitle, 
                           fontsize=25, 
@@ -1079,10 +1137,11 @@ class DataSetNorgate(DataProcess):
             norm=df_dict['df_norm'],
             matrix=df_dict['df_matrix'],
             mpl_line_params=df_dict['df_mpl_line_params'],
+            mpl_bar_params=df_dict['df_mpl_bar_params'],
             df_dict=df_dict):
         
         # Inherit methods from DataProcess class
-        super().__init__(self)
+        DataProcess.__init__(self)
         
         # Instantiate input variables
         self.tickers = tickers
@@ -1102,6 +1161,7 @@ class DataSetNorgate(DataProcess):
         self.norm = norm
         self.matrix = matrix
         self.mpl_line_params = mpl_line_params
+        self.mpl_bar_params = mpl_bar_params
         self.df_dict = df_dict
 
         
@@ -1116,8 +1176,8 @@ class DataSetNorgate(DataProcess):
 
         """
         # Create dictionaries of DataFrames of prices and ticker names
-        self.ticker_dict, self.ticker_name_dict, \
-            self.ticker_short_name_dict = self._importnorgate(
+        (self.ticker_dict, self.ticker_name_dict, 
+            self.ticker_short_name_dict) = self._importnorgate(
                 self.tickers, self.lookback)
         
         # Add trend fields to each of the DataFrames in ticker_dict
@@ -1128,8 +1188,8 @@ class DataSetNorgate(DataProcess):
         
         # Create trend strength data
         self._barometer(ticker_dict=self.ticker_dict, 
-                              ticker_name_dict=self.ticker_name_dict, 
-                              trend_flags=self.trend_flags_full)
+                        ticker_name_dict=self.ticker_name_dict, 
+                        trend_flags=self.trend_flags_full)
         
         return self
     
@@ -1156,10 +1216,11 @@ class DataSetYahoo(DataProcess):
             norm=df_dict['df_norm'],
             matrix=df_dict['df_matrix'],
             mpl_line_params=df_dict['df_mpl_line_params'],
+            mpl_bar_params=df_dict['df_mpl_bar_params'],
             df_dict=df_dict):
         
         # Inherit methods from DataProcess class
-        super().__init__(self)
+        DataProcess.__init__(self)
         
         # Create list of tickers, dictionary of ticker names from 
         # Wikipedia
@@ -1186,6 +1247,7 @@ class DataSetYahoo(DataProcess):
         self.norm = norm
         self.matrix = matrix
         self.mpl_line_params = mpl_line_params
+        self.mpl_bar_params = mpl_bar_params
         self.df_dict = df_dict
 
 
@@ -1211,8 +1273,8 @@ class DataSetYahoo(DataProcess):
         
         # Create trend strength data
         self._barometer(ticker_dict=self.ticker_dict, 
-                              ticker_name_dict=self.ticker_name_dict, 
-                              trend_flags=self.trend_flags_full)
+                        ticker_name_dict=self.ticker_name_dict, 
+                        trend_flags=self.trend_flags_full)
         
         return self
 
