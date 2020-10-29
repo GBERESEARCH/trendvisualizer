@@ -116,11 +116,118 @@ df_dict = {# lists of parameters for each of the trend flags calculated
                 'grid.linestyle':':'
                 },            
             
+            'df_lookback':500,
             'df_mkts':5,
             'df_trend':'strong',
             'df_days':60,
             'df_norm':True,
-            'df_matrix':False
+            'df_matrix':False,
+            
+            'df_comm_tickers':[
+                '&6A_CCB', # AUD
+                '&6B_CCB', # GBP
+                '&6C_CCB', # CAD
+                '&6E_CCB', # EUR
+                '&6J_CCB', # JPY
+                '&6M_CCB', # MXN
+                '&6N_CCB', # NZD
+                '&6S_CCB', # CHF
+                '&AFB_CCB', # Eastern Australia Feed Barley
+                '&AWM_CCB', # Eastern Australia Wheat
+                #'&BAX_CCB', # Canadian Bankers Acceptance
+                '&BRN_CCB', # Brent Crude Oil
+                '&BTC_CCB', # Bitcoin 
+                '&CC_CCB', # Cocoa 
+                '&CGB_CCB', # Canadian 10 Yr Govt Bond 
+                '&CL_CCB', # Crude Oil - Light Sweet
+                '&CT_CCB', # Cotton #2
+                '&DC_CCB', # Milk - Class III
+                #'&DX_CCB', # US Dollar Index
+                '&EH_CCB', # Ethanol
+                '&EMD_CCB', # S&P MidCap 400 E-mini
+                '&ES_CCB', # S&P 500 E-mini
+                '&FBTP_CCB', # Euro-BTP Long Term
+                '&FCE_CCB', # CAC 40
+                '&FDAX_CCB', # DAX
+                '&FESX_CCB', # EURO STOXX 50
+                '&FGBL_CCB', # Euro-Bund - 10 Yr
+                '&FGBM_CCB', # Euro-Bobl - 5 Yr
+                '&FGBS_CCB', # Euro-Schatz - 2 Yr
+                '&FGBX_CCB', # Euro-Buxl - 30 Yr
+                '&FSMI_CCB', # Swiss Market Index
+                '&FTDX_CCB', # TecDAX
+                '&GAS_CCB', # Gas Oil
+                '&GC_CCB', # Gold
+                '&GD_CCB', # GS&P GSCI
+                #'&GE_CCB', # Eurodollar
+                '&GF_CCB', # Feeder Cattle    
+                '&HE_CCB', # Lean Hogs    
+                '&HG_CCB', # Copper    
+                '&HO_CCB', # NY Harbor ULSD     
+                '&HSI_CCB', # Hang Seng Index     
+                '&KC_CCB', # Coffee C
+                '&KE_CCB', # KC HRW Wheat
+                '&KOS_CCB', # KOSPI 200
+                '&LBS_CCB', # Lumber
+                '&LCC_CCB', # London Cocoa
+                '&LE_CCB', # Live Cattle
+                #'&LES_CCB', # Euro Swiss
+                #'&LEU_CCB', # Euribor
+                '&LFT_CCB', # FTSE 100
+                '&LLG_CCB', # Long Gilt
+                '&LRC_CCB', # Robusta Coffee
+                #'&LSS_CCB', # Short Sterling
+                '&LSU_CCB', # White Sugar
+                '&LWB_CCB', # Feed Wheat
+                '&MHI_CCB', # Hang Seng Index - Mini
+                '&MWE_CCB', # Hard Red Spring Wheat
+                '&NG_CCB', # Henry Hub Natural Gas
+                '&NIY_CCB', # Nikkei 225 Dollar    
+                '&NKD_CCB', # Nikkei 225 Dollar
+                '&NQ_CCB', # Nasdaq-100 - E-mini
+                '&OJ_CCB', # Frozen Concentrated Orange Juice
+                '&PA_CCB', # Palladium
+                '&PL_CCB', # Platinum
+                '&RB_CCB', # RBOB Gasoline
+                '&RS_CCB', # Canola
+                '&RTY_CCB', # Russell 2000 - E-mini
+                '&SB_CCB', # Sugar No. 11
+                '&SCN_CCB', # FTSE China A50 Index
+                '&SI_CCB', # Silver
+                '&SIN_CCB', # SGX Nifty 50 Index
+                '&SJB_CCB', # Japanese Govt Bond - Mini
+                '&SNK_CCB', # Nikkei 225 (SGX)
+                '&SP_CCB', # S&P 500
+                '&SSG_CCB', # MSCI Singapore Index
+                '&STW_CCB', # MSCI Taiwan Index
+                '&SXF_CCB', # S&P/TSX 60 Index
+                '&TN_CCB', # Ultra 10 Year U.S. T-Note
+                '&UB_CCB', # Ultra U.S. T-Bond
+                '&VX_CCB', # Cboe Volatility Index    
+                '&WBS_CCB', # WTI Crude Oil
+                '&YAP_CCB', # ASX SPI 200
+                '&YG_CCB', # Gold - Mini
+                '&YI_CCB', # Silver - Mini
+                #'&YIB_CCB', # ASX 30 Day Interbank Cash Rate
+                #'&YIR_CCB', # ASX 30 Day Interbank Cash Rate
+                '&YM_CCB', # E-mini Dow
+                #'&YXT_CCB', # ASX 10 Year Treasury Bond
+                #'&YYT_CCB', # ASX 3 Year Treasury Bond
+                '&ZB_CCB', # U.S. T-Bond
+                '&ZC_CCB', # Corn
+                '&ZF_CCB', # 5-Year US T-Note
+                '&ZG_CCB', # Gold 100oz
+                '&ZI_CCB', # Silver 5000oz
+                '&ZL_CCB', # Soybean Oil
+                '&ZM_CCB', # Soybean Meal
+                '&ZN_CCB', # 10-Year US T-Note    
+                '&ZO_CCB', # Oats
+                #'&ZQ_CCB', # 30 Day Federal Funds
+                '&ZR_CCB', # Rough Rice
+                '&ZS_CCB', # Soybeans    
+                '&ZT_CCB', # 2-Year US T-Note    
+                '&ZW_CCB' # Chicago SRW Wheat
+                ]
             }
 
 
@@ -965,7 +1072,7 @@ class DataProcess():
                               +str(days)+' Trading Days')
 
             if trend == 'strong':
-                charttitle = ("Up and Down Trending Markets" 
+                charttitle = ("Most Strongly Trending Markets" 
                               +" - Relative Return Over Last "
                               +str(days)+' Trading Days')
 
@@ -975,8 +1082,8 @@ class DataProcess():
                               +str(days)+' Trading Days')
 
             if trend == 'all':
-                charttitle = ("Up, Down and Neutral Trending Markets" 
-                              +" - Relative Return Over Last "
+                charttitle = ("Most Strongly and Neutral Trending" 
+                              +" Markets - Price Over Last "
                               +str(days)+' Trading Days')
                 
         else:
@@ -991,7 +1098,7 @@ class DataProcess():
                               +str(days)+' Trading Days')
 
             if trend == 'strong':
-                charttitle = ("Up and Down Trending Markets" 
+                charttitle = ("Most Strongly Trending Markets" 
                               +" - Price Over Last "
                               +str(days)+' Trading Days')
 
@@ -1001,8 +1108,8 @@ class DataProcess():
                               +str(days)+' Trading Days')
 
             if trend == 'all':
-                charttitle = ("Up, Down and Neutral Trending Markets" 
-                              +" - Price Over Last "
+                charttitle = ("Most Strongly and Neutral Trending" 
+                              +" Markets - Price Over Last "
                               +str(days)+' Trading Days')            
        
         # general title
@@ -1153,8 +1260,8 @@ class DataSetNorgate(DataProcess):
     
     def __init__(
             self, 
-            tickers, 
-            lookback=500, 
+            tickers=df_dict['df_comm_tickers'], 
+            lookback=df_dict['df_lookback'], 
             trend_flags=df_dict['df_trend_flags'],
             trend_flags_full=df_dict['df_trend_flags_full'], 
             ma_list=df_dict['df_ma_list'], 
