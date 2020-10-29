@@ -100,6 +100,21 @@ df_dict = {# lists of parameters for each of the trend flags calculated
                 'grid.linestyle':':'
                 },            
             
+            'df_mpl_chart_params':{
+                'figure.dpi':100,
+                'axes.edgecolor':'black',
+                'axes.titlepad':5,
+                'axes.xmargin':0.05,
+                'axes.ymargin':0.05,
+                'axes.linewidth':0.5,
+                'axes.facecolor':(0.8, 0.8, 0.9, 0.3),
+                'xtick.major.pad':1,
+                'ytick.major.pad':1,
+                'lines.linewidth':2.0,
+                'grid.color':'black',
+                'grid.linestyle':':'
+                },            
+            
             'df_mkts':5,
             'df_trend':'strong',
             'df_days':60,
@@ -749,9 +764,23 @@ class DataProcess():
         ax.yaxis.set_label_position('right')
         ax.yaxis.tick_right()
         
+        # Set ytick labels 
+        yticklabels = (int(round(tenor.min().min(), -1)),
+                       100 - int((abs(100 - round(tenor.min().min(), -1))) / 2),
+                       100, 
+                       100 + int((abs(100 - round(tenor.max().max(), -1))) / 2),
+                       int(round(tenor.max().max(), -1)))
+        ax.set_yticks(yticklabels)
+        
+        # Set x axis range
+        ax.set_xlim(min(tenor.index), max(tenor.index))
+       
         # Shift label to avoid overlapping tick marks
         ax.yaxis.labelpad = 40
         ax.xaxis.labelpad = 20
+        
+        # Set a horizontal line at 100 
+        ax.axhline(y=100, linewidth=1, color='k')
         
         # Set x and y labels and title
         ax.set_xlabel('Date', fontsize=18)
@@ -819,15 +848,18 @@ class DataProcess():
         
         data_list = self.data_list 
         
+        # Set style
+        plt.style.use('seaborn-darkgrid')
+        plt.rcParams.update(self.mpl_chart_params)
+                
+        # create a color palette
+        palette = plt.get_cmap('tab20')
+        
         # Initialize the figure
         fig, ax = plt.subplots(figsize=(16,16))
         fig.subplots_adjust(top=0.85)
-        plt.tight_layout()
-        plt.style.use('seaborn-darkgrid')
-    
-        # create a color palette
-        palette = plt.get_cmap('tab20')
-    
+        fig.tight_layout()
+               
         # multiple line plot
         num=0
         for ticker in data_list:
@@ -865,11 +897,11 @@ class DataProcess():
             # xticks only on bottom graphs
             if num in range(36) :
                 plt.tick_params(labelbottom=False)
-    
+                   
             # Add title
             plt.title(label, 
                       loc='left', 
-                      fontsize=12, 
+                      fontsize=10, 
                       fontweight=0, 
                       color='black' )
     
@@ -906,9 +938,9 @@ class DataProcess():
             ax.xaxis.set_minor_locator(minor_tick)
             
             # Set size of ticks
-            ax.tick_params(which='both', width=1)
-            ax.tick_params(which='major', length=8)
-            ax.tick_params(which='minor', length=4)
+            ax.tick_params(which='both', width=0.5, labelsize=8)
+            ax.tick_params(which='major', length=2)
+            ax.tick_params(which='minor', length=1)
                         
             # Set prices to the right as we are concerned with the 
             # current level
@@ -1138,6 +1170,7 @@ class DataSetNorgate(DataProcess):
             matrix=df_dict['df_matrix'],
             mpl_line_params=df_dict['df_mpl_line_params'],
             mpl_bar_params=df_dict['df_mpl_bar_params'],
+            mpl_chart_params=df_dict['df_mpl_chart_params'],
             df_dict=df_dict):
         
         # Inherit methods from DataProcess class
@@ -1162,6 +1195,7 @@ class DataSetNorgate(DataProcess):
         self.matrix = matrix
         self.mpl_line_params = mpl_line_params
         self.mpl_bar_params = mpl_bar_params
+        self.mpl_chart_params = mpl_chart_params
         self.df_dict = df_dict
 
         
@@ -1217,6 +1251,7 @@ class DataSetYahoo(DataProcess):
             matrix=df_dict['df_matrix'],
             mpl_line_params=df_dict['df_mpl_line_params'],
             mpl_bar_params=df_dict['df_mpl_bar_params'],
+            mpl_chart_params=df_dict['df_mpl_chart_params'],
             df_dict=df_dict):
         
         # Inherit methods from DataProcess class
@@ -1248,6 +1283,7 @@ class DataSetYahoo(DataProcess):
         self.matrix = matrix
         self.mpl_line_params = mpl_line_params
         self.mpl_bar_params = mpl_bar_params
+        self.mpl_chart_params = mpl_chart_params
         self.df_dict = df_dict
 
 
