@@ -95,30 +95,35 @@ mkt.prepyahoo()
 
 ####	Display Bar chart
 ```
+mkt.trendbarchart(mkts=20, trend='up')
+```
+![comm_bar_up](images/comm_bar_up.png)
+
+```
 mkt.trendbarchart(mkts=20, trend='strong')
 ```
-![stock_bar_top](images/stock_bar_top.png)
+![stock_bar_strong](images/stock_bar_strong.png)
 
 ```
 mkt.trendbarchart(mkts=20, trend='neutral')
 ```
-![comm_bar_bottom](images/comm_bar_bottom.png)
+![comm_bar_neutral](images/comm_bar_neutral.png)
 
 &nbsp;
 
 ####	Display Line chart
 ```
-mkt.returnsgraph(days=60, trend='up')
+mkt.returnsgraph(days=60, trend='strong')
 ```
-![stock_60d_line](images/stock_60d_line.png)
+![stock_strong_60d_line](images/stock_strong_60d_line.png)
 ```
-mkt.returnsgraph(days=120, trend='down')
+mkt.returnsgraph(days=120, mkts=10, trend='down')
 ```
-![comm_120d_line](images/comm_120d_line.png)
+![comm_120d_down_line](images/comm_120d_down_line.png)
 ```
-mkt.returnsgraph(days=250, trend='strong')
+mkt.returnsgraph(days=250, mkts=10, trend='up')
 ```
-![stock_250d_line](images/stock_250d_line.png)
+![stock_250d_up_line](images/stock_250d_up_line.png)
 
 &nbsp;
 
@@ -126,8 +131,12 @@ mkt.returnsgraph(days=250, trend='strong')
 ```
 mkt.marketchart(days=60, trend='up')
 ```
-![stock_mkt_return_60d](images/stock_mkt_return_60d.png)
+![comm_mkt_up_return_60d](images/comm_mkt_up_return_60.png)
+```
+mkt.marketchart(days=120, trend='down', norm=False)
+```
+![stock_mkt_down_price_120d](images/stock_mkt_down_price_120d.png)  
 ```
 mkt.marketchart(days=60, trend='strong', norm=False)
 ```
-![comm_mkt_price_250](images/comm_mkt_price_250.png)  
+![comm_mkt_price_strong_500](images/comm_mkt_price_strong_500.png)  

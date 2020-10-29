@@ -72,6 +72,7 @@ df_dict = {# lists of parameters for each of the trend flags calculated
                 ],
             
             'df_mpl_line_params':{
+                'figure.dpi':100,
                 'axes.edgecolor':'black',
                 'axes.titlepad':15,
                 'axes.xmargin':0.05,
