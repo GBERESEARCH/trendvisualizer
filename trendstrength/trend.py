@@ -5,230 +5,13 @@ import matplotlib.dates as mdates
 import matplotlib.pyplot as plt
 import numpy as np
 import pandas as pd
+import trend_params as tp
+import datetime as dt
+from operator import itemgetter
+from pandas.tseries.offsets import BDay
 from matplotlib.ticker import MaxNLocator, AutoMinorLocator
 from matplotlib.dates import MO, WeekdayLocator, MonthLocator
 from yahoofinancials import YahooFinancials
-
-# Dictionary containing all the default parameters
-df_dict = {# lists of parameters for each of the trend flags calculated 
-           # in fields function
-           'df_ma_list':[10, 20, 30, 50, 100, 200],
-           'df_macd_params':[12, 26, 9],
-           'df_adx_list':[10, 20, 30, 50, 100, 200],
-           'df_ma_cross_list':[(10, 30), (20, 50), (50, 200)],
-           'df_price_cross_list':[10, 20, 30, 50, 100, 200],
-           'df_rsi_list':[10, 20, 30, 50, 100, 200],
-           'df_atr_list':[14],
-
-            # list of the individual trend flag lists
-            'df_trend_flag_list':[
-                'df_ma_list', 
-                'df_macd_params', 
-                'df_adx_list', 
-                'df_ma_cross_list', 
-                'df_price_cross_list', 
-                'df_rsi_list', 
-                'df_atr_list'
-                ],
-
-            # list of default trend flags to be used if no alternatives 
-            # are supplied
-            'df_trend_flags':[
-                'MA_10_30',
-                'MACD_flag',               
-                'PX_MA_20',
-                'MA_20_50',
-                'ADX_20_flag',
-                'PX_MA_50',
-                'MA_50_200',
-                'ADX_50_flag',
-                'PX_MA_200',
-                'ADX_200_flag'
-                ],
-            
-            'df_trend_flags_full':[
-                'PX_MA_10',
-                'ADX_10_flag',
-                'RSI_10_flag',
-                'MA_10_30',
-                'MACD_flag',           
-                'PX_MA_20',
-                'MA_20_50',
-                'ADX_20_flag',
-                'RSI_20_flag',
-                'PX_MA_30',
-                'ADX_30_flag',
-                'RSI_30_flag',
-                'PX_MA_50',
-                'MA_50_200',
-                'ADX_50_flag',
-                'RSI_50_flag',
-                'PX_MA_100',
-                'ADX_100_flag',
-                'RSI_100_flag',
-                'PX_MA_200',
-                'ADX_200_flag',
-                'RSI_200_flag'
-                ],
-            
-            'df_mpl_line_params':{
-                'figure.dpi':100,
-                'axes.edgecolor':'black',
-                'axes.titlepad':15,
-                'axes.xmargin':0.05,
-                'axes.ymargin':0.05,
-                'axes.linewidth':2,
-                'axes.facecolor':(0.8, 0.8, 0.9, 0.5),
-                'xtick.major.pad':10,
-                'ytick.major.pad':10,
-                'lines.linewidth':3.0,
-                'grid.color':'black',
-                'grid.linestyle':':'
-                },
-            
-            'df_mpl_bar_params':{
-                'figure.dpi':100,
-                'axes.edgecolor':'black',
-                'axes.titlepad':15,
-                'axes.xmargin':0.05,
-                'axes.ymargin':0.05,
-                'axes.linewidth':2,
-                'axes.facecolor':(0.8, 0.8, 0.9, 0.5),
-                'xtick.major.pad':10,
-                'ytick.major.pad':10,
-                'lines.linewidth':3.0,
-                'grid.color':'black',
-                'grid.linestyle':':'
-                },            
-            
-            'df_mpl_chart_params':{
-                'figure.dpi':100,
-                'axes.edgecolor':'black',
-                'axes.titlepad':5,
-                'axes.xmargin':0.05,
-                'axes.ymargin':0.05,
-                'axes.linewidth':0.5,
-                'axes.facecolor':(0.8, 0.8, 0.9, 0.3),
-                'xtick.major.pad':1,
-                'ytick.major.pad':1,
-                'lines.linewidth':2.0,
-                'grid.color':'black',
-                'grid.linestyle':':'
-                },            
-            
-            'df_lookback':500,
-            'df_mkts':5,
-            'df_trend':'strong',
-            'df_days':60,
-            'df_norm':True,
-            'df_matrix':False,
-            
-            'df_comm_tickers':[
-                '&6A_CCB', # AUD
-                '&6B_CCB', # GBP
-                '&6C_CCB', # CAD
-                '&6E_CCB', # EUR
-                '&6J_CCB', # JPY
-                '&6M_CCB', # MXN
-                '&6N_CCB', # NZD
-                '&6S_CCB', # CHF
-                '&AFB_CCB', # Eastern Australia Feed Barley
-                '&AWM_CCB', # Eastern Australia Wheat
-                #'&BAX_CCB', # Canadian Bankers Acceptance
-                '&BRN_CCB', # Brent Crude Oil
-                '&BTC_CCB', # Bitcoin 
-                '&CC_CCB', # Cocoa 
-                '&CGB_CCB', # Canadian 10 Yr Govt Bond 
-                '&CL_CCB', # Crude Oil - Light Sweet
-                '&CT_CCB', # Cotton #2
-                '&DC_CCB', # Milk - Class III
-                #'&DX_CCB', # US Dollar Index
-                '&EH_CCB', # Ethanol
-                '&EMD_CCB', # S&P MidCap 400 E-mini
-                '&ES_CCB', # S&P 500 E-mini
-                '&FBTP_CCB', # Euro-BTP Long Term
-                '&FCE_CCB', # CAC 40
-                '&FDAX_CCB', # DAX
-                '&FESX_CCB', # EURO STOXX 50
-                '&FGBL_CCB', # Euro-Bund - 10 Yr
-                '&FGBM_CCB', # Euro-Bobl - 5 Yr
-                '&FGBS_CCB', # Euro-Schatz - 2 Yr
-                '&FGBX_CCB', # Euro-Buxl - 30 Yr
-                '&FSMI_CCB', # Swiss Market Index
-                '&FTDX_CCB', # TecDAX
-                '&GAS_CCB', # Gas Oil
-                '&GC_CCB', # Gold
-                '&GD_CCB', # GS&P GSCI
-                #'&GE_CCB', # Eurodollar
-                '&GF_CCB', # Feeder Cattle    
-                '&HE_CCB', # Lean Hogs    
-                '&HG_CCB', # Copper    
-                '&HO_CCB', # NY Harbor ULSD     
-                '&HSI_CCB', # Hang Seng Index     
-                '&KC_CCB', # Coffee C
-                '&KE_CCB', # KC HRW Wheat
-                '&KOS_CCB', # KOSPI 200
-                '&LBS_CCB', # Lumber
-                '&LCC_CCB', # London Cocoa
-                '&LE_CCB', # Live Cattle
-                #'&LES_CCB', # Euro Swiss
-                #'&LEU_CCB', # Euribor
-                '&LFT_CCB', # FTSE 100
-                '&LLG_CCB', # Long Gilt
-                '&LRC_CCB', # Robusta Coffee
-                #'&LSS_CCB', # Short Sterling
-                '&LSU_CCB', # White Sugar
-                '&LWB_CCB', # Feed Wheat
-                '&MHI_CCB', # Hang Seng Index - Mini
-                '&MWE_CCB', # Hard Red Spring Wheat
-                '&NG_CCB', # Henry Hub Natural Gas
-                '&NIY_CCB', # Nikkei 225 Dollar    
-                '&NKD_CCB', # Nikkei 225 Dollar
-                '&NQ_CCB', # Nasdaq-100 - E-mini
-                '&OJ_CCB', # Frozen Concentrated Orange Juice
-                '&PA_CCB', # Palladium
-                '&PL_CCB', # Platinum
-                '&RB_CCB', # RBOB Gasoline
-                '&RS_CCB', # Canola
-                '&RTY_CCB', # Russell 2000 - E-mini
-                '&SB_CCB', # Sugar No. 11
-                '&SCN_CCB', # FTSE China A50 Index
-                '&SI_CCB', # Silver
-                '&SIN_CCB', # SGX Nifty 50 Index
-                '&SJB_CCB', # Japanese Govt Bond - Mini
-                '&SNK_CCB', # Nikkei 225 (SGX)
-                '&SP_CCB', # S&P 500
-                '&SSG_CCB', # MSCI Singapore Index
-                '&STW_CCB', # MSCI Taiwan Index
-                '&SXF_CCB', # S&P/TSX 60 Index
-                '&TN_CCB', # Ultra 10 Year U.S. T-Note
-                '&UB_CCB', # Ultra U.S. T-Bond
-                '&VX_CCB', # Cboe Volatility Index    
-                '&WBS_CCB', # WTI Crude Oil
-                '&YAP_CCB', # ASX SPI 200
-                '&YG_CCB', # Gold - Mini
-                '&YI_CCB', # Silver - Mini
-                #'&YIB_CCB', # ASX 30 Day Interbank Cash Rate
-                #'&YIR_CCB', # ASX 30 Day Interbank Cash Rate
-                '&YM_CCB', # E-mini Dow
-                #'&YXT_CCB', # ASX 10 Year Treasury Bond
-                #'&YYT_CCB', # ASX 3 Year Treasury Bond
-                '&ZB_CCB', # U.S. T-Bond
-                '&ZC_CCB', # Corn
-                '&ZF_CCB', # 5-Year US T-Note
-                '&ZG_CCB', # Gold 100oz
-                '&ZI_CCB', # Silver 5000oz
-                '&ZL_CCB', # Soybean Oil
-                '&ZM_CCB', # Soybean Meal
-                '&ZN_CCB', # 10-Year US T-Note    
-                '&ZO_CCB', # Oats
-                #'&ZQ_CCB', # 30 Day Federal Funds
-                '&ZR_CCB', # Rough Rice
-                '&ZS_CCB', # Soybeans    
-                '&ZT_CCB', # 2-Year US T-Note    
-                '&ZW_CCB' # Chicago SRW Wheat
-                ]
-            }
 
 
 class DataProcess():
@@ -236,10 +19,61 @@ class DataProcess():
     Container for various data processing operations
     """
     def __init__(self, *args, **kwargs):
-        pass
+        self.df_dict = tp.trend_params_dict
+        
+        # Initialize fixed default parameters
+        self._init_fixed_params()
+        
+    
+    def _init_fixed_params(self):
+        """
+        Initialize fixed default parameters using values from parameters dict
+        Returns
+        -------
+        Various parameters and dictionaries to the object.
+        """
+        # Parameters to overwrite mpl_style defaults
+        self.mpl_line_params = self.df_dict['df_mpl_line_params']
+        self.mpl_bar_params = self.df_dict['df_mpl_bar_params']
+        self.mpl_chart_params = self.df_dict['df_mpl_chart_params']
+        
+    
+    def _refresh_params_default(self, **kwargs):
+        """
+        Set parameters in various functions to the default values.
+        Parameters
+        ----------
+        **kwargs : Various
+                   Takes any of the arguments of the various methods 
+                   that use it to refresh data.
+        Returns
+        -------
+        Various
+            Runs methods to fix input parameters and reset defaults if 
+            no data provided
+        """
+        
+        # For all the supplied arguments
+        for k, v in kwargs.items():
+            
+            # If a value for a parameter has not been provided
+            if v is None:
+                
+                # Set it to the default value and assign to the object 
+                # and to input dictionary
+                v = self.df_dict['df_'+str(k)]
+                self.__dict__[k] = v
+                kwargs[k] = v 
+            
+            # If the value has been provided as an input, assign this 
+            # to the object
+            else:
+                self.__dict__[k] = v
+                      
+        return kwargs    
 
 
-    def _fields(self, ticker_dict, ma_list, macd_params, adx_list, 
+    def _fields(self, ma_list, macd_params, adx_list, 
                ma_cross_list, price_cross_list, rsi_list, atr_list):
         """
         Create and add various trend indicators to each DataFrame in 
@@ -257,12 +91,10 @@ class DataProcess():
 
         """
         
-        # If data is not supplied as an input, take default values
-        if ticker_dict is None:
-            ticker_dict = self.ticker_dict
+        self.ticker_dict = self.raw_ticker_dict.copy()
         
         # Loop through each ticker in ticker_dict
-        for ticker, df in ticker_dict.items():
+        for ticker, df in self.ticker_dict.items():
             
             # Create moving averages of 10, 20, 30, 50 and 200 day 
             # timeframes
@@ -322,11 +154,10 @@ class DataProcess():
                     df['High'], df['Low'], df['Close'], timeperiod=tenor)
             
         
-        return ticker_dict
+        return self
 
 
-    def _barometer(self, ticker_dict=None, ticker_name_dict=None, 
-                        trend_flags=None):
+    def _trendstrength(self, trend_flags=None):
         """
         Create a DataFrame showing the strength of trend for selected 
         markets.
@@ -349,19 +180,15 @@ class DataProcess():
         """
         
         # If data is not supplied as an input, take default values
-        if ticker_dict is None:
-            ticker_dict = self.ticker_dict
-        if ticker_name_dict is None:
-            ticker_name_dict = self.ticker_name_dict
         if trend_flags is None:
-            trend_flags = self.trend_flags_full
+            trend_flags = self.trend_flags
         
         # Create list of tickers from ticker_dict
-        ticker_list = [ticker for ticker, df in ticker_dict.items()]
+        ticker_list = [ticker for ticker, df in self.ticker_dict.items()]
         
         # Convert ticker_name_dict to DataFrame 
         ticker_name_df = pd.DataFrame.from_dict(
-            ticker_name_dict, orient='index', columns=['Long_name']) 
+            self.ticker_name_dict, orient='index', columns=['Long_name']) 
         
         # Create empty DataFrame with Trend Flags as columns and 
         # tickers as rows
@@ -379,7 +206,7 @@ class DataProcess():
         
         # Loop through each ticker in ticker_dict to populate trend 
         # flags in frame
-        for ticker, df in ticker_dict.items():
+        for ticker, df in self.ticker_dict.items():
             for flag in trend_flags:
                frame.loc[ticker, flag] = df[flag].iloc[-1]
         
@@ -403,14 +230,12 @@ class DataProcess():
                 row['Trend Color'] = 'green'
             return row
        
-        frame = frame.apply(lambda x: col_color(x), axis=1)
-        
-        self.barometer = frame
+        self.barometer = frame.apply(lambda x: col_color(x), axis=1)
         
         return self
 
 
-    def _datalist(self, mkts=None, trend=None, matrix=None):
+    def _datalist(self, mkts, trend, market_chart, num_charts):
         """
         Create a list of the most / least trending markets.
 
@@ -427,6 +252,11 @@ class DataProcess():
                          'all' - up down and weak trends
             The default is 'strong' which displays both up-trending 
             and down-trending markets.
+        market_chart : Bool 
+            Whether the data is used for the marketchart graph. The 
+            default is False    
+        num_charts : Int
+            The number of sub plots in the market chart. The default is 40. 
 
         Returns
         -------
@@ -434,15 +264,8 @@ class DataProcess():
             List of markets to be charted.
 
         """
-
-        # If data is not supplied as an input, take default values
-        if mkts is None:
-            mkts = self.mkts
-        if trend is None:
-            trend = self.trend
-        if matrix is None:
-            matrix = self.matrix
         
+        # Take data from the trend strength table         
         barometer = self.barometer   
                         
         # if trend flag is 'up', select tickers of most up trending 
@@ -453,13 +276,13 @@ class DataProcess():
             barometer = barometer.sort_values(
                 by=['Trend Strength'], ascending=False)
             
-            if matrix:
-                # Select the 40 highest values
-                data_list = list(barometer.index[:(40)])
+            if market_chart:
+                # Select the specified number of highest values
+                data_list = list(barometer.index[:num_charts])
                 
             else:                
                 # Select the highest values
-                data_list = list(barometer.index[:(mkts)])
+                data_list = list(barometer.index[:mkts])
             
         
         # if trend flag is 'down', select tickers of most down trending 
@@ -470,13 +293,13 @@ class DataProcess():
             barometer = barometer.sort_values(
                 by=['Trend Strength'], ascending=False)
             
-            if matrix:
-                # Select the lowest values
-                data_list = list(barometer.index[-(40):])
+            if market_chart:
+                # Select the specified number of lowest values
+                data_list = list(barometer.index[-num_charts:])
                 
             else:    
                 # Select the lowest values
-                data_list = list(barometer.index[-(mkts):])
+                data_list = list(barometer.index[-mkts:])
         
         
         # if trend flag is 'neutral', select tickers of least trending 
@@ -487,13 +310,13 @@ class DataProcess():
             barometer = barometer.sort_values(
                 by=['Absolute Trend Strength'], ascending=False)
             
-            if matrix:
-                # Select the 40 lowest values
-                data_list = list(barometer.index[-(40):])
+            if market_chart:
+                # Select the specified number of lowest values
+                data_list = list(barometer.index[-num_charts:])
             
             else:
                 # Select the lowest values
-                data_list = list(barometer.index[-(mkts):])
+                data_list = list(barometer.index[-mkts:])
         
         
         # if trend flag is 'strong', select tickers of most down trending 
@@ -504,12 +327,13 @@ class DataProcess():
             barometer = barometer.sort_values(
                 by=['Trend Strength'], ascending=False)
             
-            if matrix:
-                # Select the highest 20 values
-                top = list(barometer.index[:20])
+            if market_chart:
+                # Select the specified number of highest values
+                top = list(barometer.index[:int(num_charts/2)])
             
                 # Select the lowest values
-                bottom = list(barometer.index[-20:])
+                bottom = list(barometer.index[
+                    -(num_charts-int(num_charts/2)):])
             
             else:
                 # Select the highest values
@@ -529,19 +353,20 @@ class DataProcess():
             barometer = barometer.sort_values(
                 by=['Trend Strength'], ascending=False)
             
-            if matrix:
-                # Select the 15 highest values
-                top = list(barometer.index[:15])
+            if market_chart:
+                # Select 1/3 of the specified number of highest values
+                top = list(barometer.index[:int(num_charts/3)])
                 
-                # Select the 15 lowest values
-                bottom = list(barometer.index[-15:])
+                # Select 1/3 of the specified number of lowest values
+                bottom = list(barometer.index[-int(num_charts/3):])
                 
                 # Sort by Absolute Trend Strength
                 barometer = barometer.sort_values(
                     by=['Absolute Trend Strength'], ascending=False)
                 
-                # Select the 10 lowest values
-                neutral = list(barometer.index[-(10):])
+                # Select 1/3 of the specified number of lowest values
+                neutral = list(barometer.index[
+                    -(num_charts-2*int(num_charts/3)):])
             
             else:
                 # Select the highest values
@@ -555,7 +380,7 @@ class DataProcess():
                     by=['Absolute Trend Strength'], ascending=False)
                 
                 # Select the lowest values
-                neutral = list(barometer.index[-(mkts):])
+                neutral = list(barometer.index[-mkts:])
             
             # Combine this data
             data_list = top + bottom + neutral
@@ -565,7 +390,7 @@ class DataProcess():
         return self
     
     
-    def _chartdata(self, mkts=None, trend=None):
+    def _chartdata(self, mkts, trend):
         """
         Create a time series of closing prices for selected markets.
 
@@ -591,29 +416,20 @@ class DataProcess():
         
         """
 
-        ticker_dict = self.ticker_dict
-        ticker_short_name_dict = self.ticker_short_name_dict
-  
-        if mkts is None:
-            mkts = self.mkts
-        if trend is None:
-            trend = self.trend
-        
-        self._datalist(mkts=mkts, trend=trend)
-        
-        data_list = self.data_list
+        self._datalist(mkts=mkts, trend=trend, market_chart=False, 
+                       num_charts=None)
         
         # Create a new DataFrame
         chart_data = pd.DataFrame()
         
         # For each ticker in the list of selected tickers, add the 
         # column of closing prices to new DataFrame
-        for ticker in data_list:
-            chart_data[ticker] = ticker_dict[ticker]['Close']
+        for ticker in self.data_list:
+            chart_data[ticker] = self.ticker_dict[ticker]['Close']
         
         # Rename columns from tickers to short names and forward fill 
         # any NaN cells
-        chart_data = chart_data.rename(columns=ticker_short_name_dict)
+        chart_data = chart_data.rename(columns=self.ticker_short_name_dict)
         chart_data = chart_data.fillna(method='ffill')
                      
         self.chart_data = chart_data 
@@ -621,7 +437,7 @@ class DataProcess():
         return self
 
 
-    def _normdata(self, mkts=None, trend=None, days=None):
+    def _normdata(self, mkts, trend, days):
         """
         Create a subset of chart_prep dataset normalized to start from 
         100 for the specified history window
@@ -649,20 +465,12 @@ class DataProcess():
             window
 
         """
-
-        # If data is not supplied as an input, take default values        
-        if mkts is None:
-            mkts = self.mkts
-        if trend is None:
-            trend = self.trend
         
         self._chartdata(mkts=mkts, trend=trend)
         
-        chart_data = self.chart_data
-        
         # Copy the selected number of days history from the input 
         # DataFrame
-        tenor = chart_data[-days:].copy()
+        tenor = self.chart_data[-days:].copy()
         
         # Normalize the closing price of each ticker to start from 100 
         # at the beginning of the history window
@@ -698,10 +506,10 @@ class DataProcess():
 
         """
         
-        if mkts is None:
-            mkts = self.mkts
-        if trend is None:
-            trend = self.trend
+        # If data is not supplied as an input, take default values
+        mkts, trend = itemgetter(
+            'mkts', 'trend')(self._refresh_params_default(
+                 mkts=mkts, trend=trend))
 
         barometer = self.barometer
         
@@ -812,10 +620,9 @@ class DataProcess():
         """
         
         # If data is not supplied as an input, take default values
-        if mkts is None:
-            mkts = self.mkts
-        if trend is None:
-            trend = self.trend
+        mkts, trend, days = itemgetter(
+             'mkts', 'trend', 'days')(self._refresh_params_default(
+                 mkts=mkts, trend=trend, days=days))
                 
         self._normdata(mkts=mkts, trend=trend, days=days)
         
@@ -914,7 +721,8 @@ class DataProcess():
         plt.show()    
         
    
-    def marketchart(self, days=None, trend=None, norm=True):
+    def marketchart(self, days=None, trend=None, norm=None, 
+                    chart_dimensions=None):
         """
         Create a chart showing the top and bottom 20 trending markets.
 
@@ -933,6 +741,9 @@ class DataProcess():
             and down-trending markets.    
         norm : Bool
             Whether to normalize values to start from 100
+        chart_dimensions : Tuple
+            Number of tickers to chart expressed as a Tuple, n * m. 
+            The default is (8, 5).  
 
         Returns
         -------
@@ -942,19 +753,17 @@ class DataProcess():
         """
  
         # If data is not supplied as an input, take default values
-        if days is None:
-            days = self.days
-        if trend is None:
-            trend = self.trend
-        if norm is None:
-            norm = self.norm
- 
+        days, trend, norm, chart_dimensions = itemgetter(
+             'days', 'trend', 'norm', 
+             'chart_dimensions')(self._refresh_params_default(
+                 days=days, trend=trend, norm=norm, 
+                 chart_dimensions=chart_dimensions))
+      
+        self.num_charts = int(chart_dimensions[0] * chart_dimensions[1])         
+                 
+        self._datalist(mkts=None, trend=trend, market_chart=True, 
+                       num_charts=self.num_charts)
         ticker_dict = self.ticker_dict
-        ticker_short_name_dict = self.ticker_short_name_dict
-       
-        self._datalist(trend=trend, matrix=True)
-        
-        data_list = self.data_list 
         
         # Set style
         plt.style.use('seaborn-darkgrid')
@@ -970,40 +779,41 @@ class DataProcess():
                
         # multiple line plot
         num=0
-        for ticker in data_list:
+        for ticker in self.data_list:
             num += 1
             if num < 21:
                 colr = num
             else:
                 colr = num - 20
     
-            label = ticker_short_name_dict[ticker]
+            label = self.ticker_short_name_dict[ticker]
     
             # Find the right spot on the plot
-            ax = plt.subplot(8,5, num)
+            ax = plt.subplot(chart_dimensions[0], chart_dimensions[1], num)
     
             # Plot the lineplot
-            if norm == True:
-                ax.plot(ticker_dict[ticker].index[-days:], 
-                         ticker_dict[ticker]['Close'][-days:].div(
-                             ticker_dict[ticker]['Close'][
-                                 -days:].iloc[0]).mul(100), 
-                         marker='', 
-                         color=palette(colr), 
-                         linewidth=1.9, 
-                         alpha=0.9, 
-                         label=label)
+            # Pandas error regarding multi indexing requires converting axes to 
+            # numpy arrays
+            axis_dates = np.array(ticker_dict[ticker].index[-days:])
+            if norm: 
+                axis_prices = np.array(
+                    ticker_dict[ticker]['Close'][-days:]
+                    .div(ticker_dict[ticker]['Close'][-days:].iloc[0])
+                    .mul(100))
+            
             else:
-                ax.plot(ticker_dict[ticker].index[-days:], 
-                         ticker_dict[ticker]['Close'][-days:], 
-                         marker='', 
-                         color=palette(colr), 
-                         linewidth=1.9, 
-                         alpha=0.9, 
-                         label=label)    
+                axis_prices = np.array(ticker_dict[ticker]['Close'][-days:])
+                
+            ax.plot(axis_dates, 
+                    axis_prices, 
+                    marker='', 
+                    color=palette(colr), 
+                    linewidth=1.9, 
+                    alpha=0.9, 
+                    label=label)
     
             # xticks only on bottom graphs
-            if num in range(36) :
+            if num in range(self.num_charts - chart_dimensions[1] + 1) :
                 plt.tick_params(labelbottom=False)
                    
             # Add title
@@ -1146,16 +956,16 @@ class DataProcess():
         spx_table = spx_list[0]
         
         # create a list of the tickers from the 'Symbol' column
-        tickers = list(spx_table['Symbol'])
+        self.tickers = list(spx_table['Symbol'])
         
         # create a dictionary mapping ticker to Security Name
-        ticker_name_dict = dict(zip(spx_table['Symbol'], 
+        self.ticker_name_dict = dict(zip(spx_table['Symbol'], 
                                     spx_table['Security']))
         
-        return tickers, ticker_name_dict    
+        return self    
 
 
-    def _returndata(self, ticker, start_date, end_date, freq='daily'):
+    def _returndata(self, ticker, start_date, end_date):
         """
         Create DataFrame of historic prices for specified ticker.
 
@@ -1180,6 +990,7 @@ class DataProcess():
 
         """
         yahoo_financials = YahooFinancials(ticker)
+        freq='daily'
         
         # Extract historic prices
         df = yahoo_financials.get_historical_price_data(
@@ -1224,9 +1035,9 @@ class DataProcess():
 
         """
         # Create empty dictionaries
-        ticker_dict = {}
-        ticker_name_dict = {}
-        ticker_short_name_dict = {}
+        self.raw_ticker_dict = {}
+        self.ticker_name_dict = {}
+        self.ticker_short_name_dict = {}
         
         # Loop through list of tickers
         for ticker in tickers:
@@ -1239,75 +1050,35 @@ class DataProcess():
             # Set data format and extract each DataFrame, storing as 
             # a key-value pair in ticker_dict 
             timeseriesformat = 'pandas-dataframe'
-            ticker_dict[lowtick] = norgatedata.price_timeseries(
+            self.raw_ticker_dict[lowtick] = norgatedata.price_timeseries(
                 ticker, limit = lookback, format=timeseriesformat,)
             
             # Extract the security name and store in ticker_name_dict
             ticker_name = norgatedata.security_name(ticker)
-            ticker_name_dict[lowtick] = ticker_name
+            self.ticker_name_dict[lowtick] = ticker_name
             
             # Truncate the ticker name to improve charting legibility 
             # and store in ticker_short_name_dict 
-            ticker_short_name_dict[lowtick] = ticker_name.replace(
+            self.ticker_short_name_dict[lowtick] = ticker_name.replace(
                 'Continuous Futures Backadjusted','')
             
-        return ticker_dict, ticker_name_dict, ticker_short_name_dict
+        return self
 
 
 
 class DataSetNorgate(DataProcess):
     
     
-    def __init__(
-            self, 
-            tickers=df_dict['df_comm_tickers'], 
-            lookback=df_dict['df_lookback'], 
-            trend_flags=df_dict['df_trend_flags'],
-            trend_flags_full=df_dict['df_trend_flags_full'], 
-            ma_list=df_dict['df_ma_list'], 
-            macd_params=df_dict['df_macd_params'], 
-            adx_list=df_dict['df_adx_list'], 
-            ma_cross_list=df_dict['df_ma_cross_list'], 
-            price_cross_list=df_dict['df_price_cross_list'], 
-            rsi_list=df_dict['df_rsi_list'], 
-            atr_list=df_dict['df_atr_list'], 
-            mkts=df_dict['df_mkts'],
-            trend=df_dict['df_trend'],
-            days=df_dict['df_days'],
-            norm=df_dict['df_norm'],
-            matrix=df_dict['df_matrix'],
-            mpl_line_params=df_dict['df_mpl_line_params'],
-            mpl_bar_params=df_dict['df_mpl_bar_params'],
-            mpl_chart_params=df_dict['df_mpl_chart_params'],
-            df_dict=df_dict):
+    def __init__(self):
         
         # Inherit methods from DataProcess class
         DataProcess.__init__(self)
-        
-        # Instantiate input variables
-        self.tickers = tickers
-        self.lookback = lookback
-        self.trend_flags = trend_flags
-        self.trend_flags_full = trend_flags_full
-        self.ma_list = ma_list
-        self.macd_params = macd_params
-        self.adx_list = adx_list
-        self.ma_cross_list = ma_cross_list
-        self.price_cross_list = price_cross_list
-        self.rsi_list = rsi_list
-        self.atr_list = atr_list
-        self.mkts = mkts
-        self.trend = trend
-        self.days = days
-        self.norm = norm
-        self.matrix = matrix
-        self.mpl_line_params = mpl_line_params
-        self.mpl_bar_params = mpl_bar_params
-        self.mpl_chart_params = mpl_chart_params
-        self.df_dict = df_dict
 
         
-    def prepnorgate(self):
+    def prepnorgate(self, tickers=None, lookback=None, ma_list=None, 
+                    macd_params=None, adx_list=None, ma_cross_list=None, 
+                    price_cross_list=None, rsi_list=None, atr_list=None, 
+                    trend_flags=None):
         """
         Create dataframes of prices, extracting data from Norgatedata. 
 
@@ -1317,21 +1088,30 @@ class DataSetNorgate(DataProcess):
             Dictionary of DataFrames.
 
         """
+        
+        (tickers, lookback, ma_list, macd_params, adx_list, 
+         ma_cross_list, price_cross_list, rsi_list, atr_list, 
+         trend_flags) = itemgetter(
+             'tickers', 'lookback', 'ma_list', 'macd_params', 
+             'adx_list', 'ma_cross_list', 'price_cross_list', 'rsi_list', 
+             'atr_list', 'trend_flags')(self._refresh_params_default(
+                 tickers=tickers, lookback=lookback, 
+                 ma_list=ma_list, macd_params=macd_params, adx_list=adx_list, 
+                 ma_cross_list=ma_cross_list, 
+                 price_cross_list=price_cross_list, rsi_list=rsi_list, 
+                 atr_list=atr_list, trend_flags=trend_flags))   
+
         # Create dictionaries of DataFrames of prices and ticker names
-        (self.ticker_dict, self.ticker_name_dict, 
-            self.ticker_short_name_dict) = self._importnorgate(
-                self.tickers, self.lookback)
+        self._importnorgate(tickers=tickers, lookback=lookback)
         
         # Add trend fields to each of the DataFrames in ticker_dict
-        self.ticker_dict = self._fields(
-            self.ticker_dict, self.ma_list, self.macd_params, self.adx_list, 
-            self.ma_cross_list, self.price_cross_list, self.rsi_list, 
-            self.atr_list)
+        self._fields(
+            ma_list=ma_list, macd_params=macd_params, adx_list=adx_list, 
+            ma_cross_list=ma_cross_list, price_cross_list=price_cross_list, 
+            rsi_list=rsi_list, atr_list=atr_list)
         
         # Create trend strength data
-        self._barometer(ticker_dict=self.ticker_dict, 
-                        ticker_name_dict=self.ticker_name_dict, 
-                        trend_flags=self.trend_flags_full)
+        self._trendstrength(trend_flags=trend_flags)
         
         return self
     
@@ -1339,63 +1119,24 @@ class DataSetNorgate(DataProcess):
 
 class DataSetYahoo(DataProcess):
     
-    def __init__(
-            self, 
-            start_date, 
-            end_date, 
-            trend_flags=df_dict['df_trend_flags'],
-            trend_flags_full=df_dict['df_trend_flags_full'],
-            ma_list=df_dict['df_ma_list'], 
-            macd_params=df_dict['df_macd_params'], 
-            adx_list=df_dict['df_adx_list'], 
-            ma_cross_list=df_dict['df_ma_cross_list'], 
-            price_cross_list=df_dict['df_price_cross_list'], 
-            rsi_list=df_dict['df_rsi_list'], 
-            atr_list=df_dict['df_atr_list'], 
-            mkts=df_dict['df_mkts'],
-            trend=df_dict['df_trend'],
-            days=df_dict['df_days'],
-            norm=df_dict['df_norm'],
-            matrix=df_dict['df_matrix'],
-            mpl_line_params=df_dict['df_mpl_line_params'],
-            mpl_bar_params=df_dict['df_mpl_bar_params'],
-            mpl_chart_params=df_dict['df_mpl_chart_params'],
-            df_dict=df_dict):
+    def __init__(self):
         
         # Inherit methods from DataProcess class
         DataProcess.__init__(self)
         
         # Create list of tickers, dictionary of ticker names from 
         # Wikipedia
-        self.tickers, self.ticker_name_dict = self._tickerextract()
+        self._tickerextract()
         
         # Set short_name_dict = name_dict
         self.ticker_short_name_dict = self.ticker_name_dict
-        
-        # Instantiate input variables
-        self.start_date = start_date
-        self.end_date = end_date
-        self.trend_flags = trend_flags
-        self.trend_flags_full = trend_flags_full
-        self.ma_list = ma_list
-        self.macd_params = macd_params
-        self.adx_list = adx_list
-        self.ma_cross_list = ma_cross_list
-        self.price_cross_list = price_cross_list
-        self.rsi_list = rsi_list
-        self.atr_list = atr_list
-        self.mkts = mkts
-        self.trend = trend
-        self.days = days
-        self.norm = norm
-        self.matrix = matrix
-        self.mpl_line_params = mpl_line_params
-        self.mpl_bar_params = mpl_bar_params
-        self.mpl_chart_params = mpl_chart_params
-        self.df_dict = df_dict
 
 
-    def prepyahoo(self):
+    def prepyahoo(self, tickers=None, start_date=None, end_date=None, 
+                  ticker_limit=None, lookback=None, ma_list=None, 
+                  macd_params=None, adx_list=None, ma_cross_list=None, 
+                  price_cross_list=None, rsi_list=None, atr_list=None, 
+                  trend_flags=None):
         """
         Create dataframes of prices, extracting data from Yahoo Finance. 
 
@@ -1405,25 +1146,49 @@ class DataSetYahoo(DataProcess):
             Dictionary of DataFrames.
 
         """
+        if tickers is None:
+            tickers = self.tickers
+        
+        (ticker_limit, lookback, ma_list, macd_params, adx_list, 
+         ma_cross_list, price_cross_list, rsi_list, atr_list, 
+         trend_flags) = itemgetter(
+             'ticker_limit', 'lookback', 'ma_list', 'macd_params', 
+             'adx_list', 'ma_cross_list', 'price_cross_list', 'rsi_list', 
+             'atr_list', 'trend_flags')(self._refresh_params_default(
+                 ticker_limit=ticker_limit, lookback=lookback, ma_list=ma_list, 
+                 macd_params=macd_params, adx_list=adx_list, 
+                 ma_cross_list=ma_cross_list, 
+                 price_cross_list=price_cross_list, rsi_list=rsi_list, 
+                 atr_list=atr_list, trend_flags=trend_flags))
+                
+        if end_date is None:
+            end_date_as_dt = (dt.datetime.today() - BDay(1)).date()
+            end_date = str(end_date_as_dt)
+        self.end_date = end_date    
+        
+        if start_date is None:
+            start_date_as_dt = (dt.datetime.today() - 
+                                pd.Timedelta(days=lookback*(365/250))).date()
+            start_date = str(start_date_as_dt)
+        self.start_date = start_date    
+       
         # Create dictionaries of DataFrames of prices and ticker names
-        self.ticker_dict, self.exceptions = self._importyahoo(
-            self.tickers, self.start_date, self.end_date, mkts=None)
+        self._importyahoo(tickers=tickers, start_date=start_date, 
+                          end_date=end_date, ticker_limit=ticker_limit)
         
         # Add trend fields to each of the DataFrames in ticker_dict
-        self.ticker_dict = self._fields(
-            self.ticker_dict, self.ma_list, self.macd_params, self.adx_list, 
-            self.ma_cross_list, self.price_cross_list, self.rsi_list, 
-            self.atr_list)
+        self._fields(
+            ma_list=ma_list, macd_params=macd_params, adx_list=adx_list, 
+            ma_cross_list=ma_cross_list, price_cross_list=price_cross_list, 
+            rsi_list=rsi_list, atr_list=atr_list)
         
         # Create trend strength data
-        self._barometer(ticker_dict=self.ticker_dict, 
-                        ticker_name_dict=self.ticker_name_dict, 
-                        trend_flags=self.trend_flags_full)
+        self._trendstrength(trend_flags=trend_flags)
         
         return self
 
 
-    def _importyahoo(self, tickers, start, end, mkts=None):
+    def _importyahoo(self, tickers, start_date, end_date, ticker_limit):
         """
         Return dictionary of price histories from Yahoo Finance.
 
@@ -1437,7 +1202,7 @@ class DataSetYahoo(DataProcess):
         end : Str
             End Date represented as a string in the 
             format 'YYYY-MM-DD'.
-        markets : Int, optional
+        ticker_limit : Int, optional
             Flag to select only the first n markets. The default 
             is None.
 
@@ -1452,33 +1217,32 @@ class DataSetYahoo(DataProcess):
         """
         
         # Create empty dictionary and list
-        ticker_dict = {}
-        exceptions = []
+        self.raw_ticker_dict = {}
+        self.exceptions = []
         
         # Loop through the tickers
-        for sym in tickers[:mkts]:
+        for sym in tickers[:ticker_limit]:
             
             # Attempt to return the data for given ticker
             try:
-                ticker_dict[sym] = self._returndata(
-                    ticker=sym, start_date=start, end_date=end, freq='daily')
+                self.raw_ticker_dict[sym] = self._returndata(
+                    ticker=sym, start_date=start_date, end_date=end_date)
             
             # If error, try replacing '.' with '-' in ticker 
             except:
                 try:
                     sym = sym.replace('.','-')
-                    ticker_dict[sym] = self._returndata(
-                        ticker=sym, start_date=start, end_date=end, 
-                        freq='daily')
+                    self.raw_ticker_dict[sym] = self._returndata(
+                        ticker=sym, start_date=start_date, end_date=end_date)
                 
                 # If error, add to list of exceptions and move to next 
                 # ticker
                 except:                    
                     print("Error with "+sym)
-                    exceptions.append(sym)
+                    self.exceptions.append(sym)
                     continue
         
-        return ticker_dict, exceptions
+        return self
     
     
     
