@@ -6,10 +6,10 @@ HERE = pathlib.Path(__file__).parent
 
 version_meta = runpy.run_path("./version.py")
 VERSION = version_meta["__version__"]
-PACKAGE_NAME = 'trendstrength'
+PACKAGE_NAME = 'trendvisualizer'
 AUTHOR = 'GBERESEARCH'
 AUTHOR_EMAIL = 'gberesearch@gmail.com'
-URL = 'https://github.com/GBERESEARCH/trendstrength'
+URL = 'https://github.com/GBERESEARCH/trendvisualizer'
 
 LICENSE = 'MIT'
 DESCRIPTION = 'Visualize trend strength across various markets.'

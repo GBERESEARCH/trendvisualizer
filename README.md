@@ -1,4 +1,4 @@
-# trendstrength
+# trendvisualizer
 ## Visualize trend strength across various markets.
 
 &nbsp;
@@ -13,7 +13,7 @@
 ### Installation
 Install from PyPI:
 ```
-$ pip install trendstrength
+$ pip install trendvisualizer
 ```
 Most of the dependencies are straightforward but installing TA-Lib requires a little extra work. 
 
