@@ -1,12 +1,13 @@
 import norgatedata
 import requests
-import talib
+import technicalmethods.methods as methods
 import matplotlib.dates as mdates
 import matplotlib.pyplot as plt
 import numpy as np
 import pandas as pd
 import trend_params as tp
 import datetime as dt
+import copy
 from operator import itemgetter
 from pandas.tseries.offsets import BDay
 from matplotlib.ticker import MaxNLocator, AutoMinorLocator
@@ -14,11 +15,16 @@ from matplotlib.dates import MO, WeekdayLocator, MonthLocator
 from yahoofinancials import YahooFinancials
 
 
-class DataProcess():
+class DataProcess(methods.Indicators):
     """
     Container for various data processing operations
     """
     def __init__(self, *args, **kwargs):
+        
+        # Inherit methods from methods.Indicators
+        methods.Indicators.__init__(self)
+        
+        # Import dictionary of default parameters 
         self.df_dict = tp.trend_params_dict
         
         # Initialize fixed default parameters
@@ -91,7 +97,7 @@ class DataProcess():
 
         """
         
-        self.ticker_dict = self.raw_ticker_dict.copy()
+        self.ticker_dict = copy.deepcopy(self.raw_ticker_dict)
         
         # Loop through each ticker in ticker_dict
         for ticker, df in self.ticker_dict.items():
@@ -111,11 +117,18 @@ class DataProcess():
             
             # Create MACD, Signal and Hist using default parameters 
             # of 12, 26, 9
-            df['MACD'], df['MACD_SIGNAL'], df['MACD_HIST'] = talib.MACD(
-                df['Close'], 
-                fastperiod=macd_params[0], 
-                slowperiod=macd_params[1], 
-                signalperiod=macd_params[2])
+            df['MACD'], df['MACD_SIGNAL'], df['MACD_HIST'] = self.MACD(
+                close=df['Close'], 
+                fast=macd_params[0], 
+                slow=macd_params[1], 
+                signal=macd_params[2])
+            
+            
+            #df['MACD'], df['MACD_SIGNAL'], df['MACD_HIST'] = talib.MACD(
+            #    df['Close'], 
+            #    fastperiod=macd_params[0], 
+            #    slowperiod=macd_params[1], 
+            #    signalperiod=macd_params[2])
             
             # Create flag for MACD histogram increasing 
             df['MACD_flag'] = np.where(df['MACD_HIST'].diff() > 0, 1, -1)
@@ -124,11 +137,19 @@ class DataProcess():
             # Create ADX of 14, 20, 50, 100 and 200 day timeframes 
             # Create flags for ADX over 25
             for tenor in adx_list:
-                df['ADX_'+str(tenor)] = talib.ADX(
-                    df['High'], df['Low'], df['Close'], timeperiod=tenor)
+                df['ADX_'+str(tenor)] = self.ADX(
+                    high=df['High'], low=df['Low'], close=df['Close'], 
+                    time_period=tenor)
                 df['ADX_'+str(tenor)+'_flag'] = np.where(
                     df['ADX_'+str(tenor)] > 25, np.where(
                         df['PX_MA_'+str(tenor)] == 1, 1, -1), 0)
+
+            
+            #df['ADX_'+str(tenor)] = talib.ADX(
+            #        df['High'], df['Low'], df['Close'], timeperiod=tenor)
+            #    df['ADX_'+str(tenor)+'_flag'] = np.where(
+            #        df['ADX_'+str(tenor)] > 25, np.where(
+            #            df['PX_MA_'+str(tenor)] == 1, 1, -1), 0)
 
              
             # Create flag for fast moving average crossing slow moving 
@@ -142,17 +163,28 @@ class DataProcess():
             # Create RSI with 14, 20, 50, 100 and 200 day timeframes 
             # Create flag for RSI over 70 or under 30
             for tenor in rsi_list:
-                df['RSI_'+str(tenor)] = talib.RSI(
-                    df['Close'], timeperiod=tenor)
+                df['RSI_'+str(tenor)] = self.RSI(
+                    close=df['Close'], time_period=tenor)
                 df['RSI_'+str(tenor)+'_flag'] = np.where(
                     df['RSI_'+str(tenor)] > 70, 1, np.where(
                         df['RSI_'+str(tenor)] < 30, -1, 0))
             
+                #df['RSI_'+str(tenor)] = talib.RSI(
+                #    df['Close'], timeperiod=tenor)
+                #df['RSI_'+str(tenor)+'_flag'] = np.where(
+                #    df['RSI_'+str(tenor)] > 70, 1, np.where(
+                #        df['RSI_'+str(tenor)] < 30, -1, 0))
+            
+            
+            
             # Create Average True Range with 14 day timeframe
             for tenor in atr_list:
-                df['ATR_'+str(tenor)] = talib.ATR(
-                    df['High'], df['Low'], df['Close'], timeperiod=tenor)
-            
+                df['ATR_'+str(tenor)] = self.ATR(
+                    high=df['High'], low=df['Low'], close=df['Close'], 
+                    time_period=tenor)
+
+                #df['ATR_'+str(tenor)] = talib.ATR(
+                #    df['High'], df['Low'], df['Close'], timeperiod=tenor)            
         
         return self
 
@@ -470,7 +502,7 @@ class DataProcess():
         
         # Copy the selected number of days history from the input 
         # DataFrame
-        tenor = self.chart_data[-days:].copy()
+        tenor = copy.deepcopy(self.chart_data[-days:])
         
         # Normalize the closing price of each ticker to start from 100 
         # at the beginning of the history window
