@@ -248,9 +248,14 @@ class DataProcess(methods.Indicators):
         frame['Trend Strength'] = frame.iloc[:,1:].sum(axis=1)
         frame = frame.sort_values(by=['Trend Strength'], ascending=False)
         
-        # Create short name column, stripping text from longname 
-        frame['Short_name'] = frame.loc[:,'Long_name'].str.replace(
-            'Continuous Futures Backadjusted','')
+        # Create short name column, stripping text from longname
+        short_name = np.array(frame['Long_name'], dtype=str)
+        long_name = np.array(frame['Long_name'])
+
+        for row in range(0, len(frame['Long_name'])):
+            short_name[row] = long_name[row].partition(" Continuous")[0]
+
+        frame['Short_name'] = short_name
         
         # Create trend strength color column and absolute strength column
         def col_color(row):
