@@ -47,7 +47,7 @@ Install trendvisualizer
 Import trend module and initialise a DataSet object
 
 ```
-import trendstrength.trend as trend
+import trendvisualizer.trend as trend
 mkt = trend.DataSetYahoo('2018-08-10', '2020-10-23')
 ```
 Extract market data, calculate indicators and trend strength
