@@ -105,15 +105,19 @@ class DataProcess(methods.Indicators):
             # Create moving averages of 10, 20, 30, 50 and 200 day 
             # timeframes
             for tenor in ma_list:
-                df['MA_'+str(tenor)] = df['Close'].rolling(
-                    window=str(tenor)+'D').mean()
-            
+                try:
+                    df['MA_'+str(tenor)] = df['Close'].rolling(
+                        window=str(tenor)+'D').mean()
+                except:
+                    print("Error with " + ticker + " MA_"+str(tenor))
             
             # Create flag for price crossing moving average
             for tenor in price_cross_list:
-                df['PX_MA_'+str(tenor)] = np.where(
-                    df['Close'] > df['MA_'+str(tenor)], 1, -1)
-                
+                try:
+                    df['PX_MA_'+str(tenor)] = np.where(
+                        df['Close'] > df['MA_'+str(tenor)], 1, -1)
+                except:
+                    print("Error with " + ticker + " PX_MA_"+str(tenor))
             
             # Create MACD, Signal and Hist using default parameters 
             # of 12, 26, 9
@@ -137,20 +141,16 @@ class DataProcess(methods.Indicators):
             # Create ADX of 14, 20, 50, 100 and 200 day timeframes 
             # Create flags for ADX over 25
             for tenor in adx_list:
-                df['ADX_'+str(tenor)] = self.ADX(
-                    high=df['High'], low=df['Low'], close=df['Close'], 
-                    time_period=tenor)
-                df['ADX_'+str(tenor)+'_flag'] = np.where(
-                    df['ADX_'+str(tenor)] > 25, np.where(
-                        df['PX_MA_'+str(tenor)] == 1, 1, -1), 0)
-
+                try:
+                    df['ADX_'+str(tenor)] = self.ADX(
+                        high=df['High'], low=df['Low'], close=df['Close'], 
+                        time_period=tenor)
+                    df['ADX_'+str(tenor)+'_flag'] = np.where(
+                        df['ADX_'+str(tenor)] > 25, np.where(
+                            df['PX_MA_'+str(tenor)] == 1, 1, -1), 0)
+                except:
+                    print("Error with " + ticker + " ADX_"+str(tenor))
             
-            #df['ADX_'+str(tenor)] = talib.ADX(
-            #        df['High'], df['Low'], df['Close'], timeperiod=tenor)
-            #    df['ADX_'+str(tenor)+'_flag'] = np.where(
-            #        df['ADX_'+str(tenor)] > 25, np.where(
-            #            df['PX_MA_'+str(tenor)] == 1, 1, -1), 0)
-
              
             # Create flag for fast moving average crossing slow moving 
             # average
@@ -158,33 +158,29 @@ class DataProcess(methods.Indicators):
                 df['MA_'+str(tenor_pair[0])+'_'+str(tenor_pair[1])] = np.where(
                     df['MA_'+str(tenor_pair[0])] > df[
                         'MA_'+str(tenor_pair[1])], 1, -1)
-            
+
 
             # Create RSI with 14, 20, 50, 100 and 200 day timeframes 
             # Create flag for RSI over 70 or under 30
             for tenor in rsi_list:
-                df['RSI_'+str(tenor)] = self.RSI(
-                    close=df['Close'], time_period=tenor)
-                df['RSI_'+str(tenor)+'_flag'] = np.where(
-                    df['RSI_'+str(tenor)] > 70, 1, np.where(
-                        df['RSI_'+str(tenor)] < 30, -1, 0))
-            
-                #df['RSI_'+str(tenor)] = talib.RSI(
-                #    df['Close'], timeperiod=tenor)
-                #df['RSI_'+str(tenor)+'_flag'] = np.where(
-                #    df['RSI_'+str(tenor)] > 70, 1, np.where(
-                #        df['RSI_'+str(tenor)] < 30, -1, 0))
-            
-            
+                try:
+                    df['RSI_'+str(tenor)] = self.RSI(
+                        close=df['Close'], time_period=tenor)
+                    df['RSI_'+str(tenor)+'_flag'] = np.where(
+                        df['RSI_'+str(tenor)] > 70, 1, np.where(
+                            df['RSI_'+str(tenor)] < 30, -1, 0))
+                except:
+                    print("Error with " + ticker + " RSI_"+str(tenor))
+           
             
             # Create Average True Range with 14 day timeframe
             for tenor in atr_list:
-                df['ATR_'+str(tenor)] = self.ATR(
-                    high=df['High'], low=df['Low'], close=df['Close'], 
-                    time_period=tenor)
-
-                #df['ATR_'+str(tenor)] = talib.ATR(
-                #    df['High'], df['Low'], df['Close'], timeperiod=tenor)            
+                try:
+                    df['ATR_'+str(tenor)] = self.ATR(
+                        high=df['High'], low=df['Low'], close=df['Close'], 
+                        time_period=tenor)
+                except:
+                    print("Error with " + ticker + " ATR_"+str(tenor))
         
         return self
 
@@ -240,8 +236,13 @@ class DataProcess(methods.Indicators):
         # flags in frame
         for ticker, df in self.ticker_dict.items():
             for flag in trend_flags:
-               frame.loc[ticker, flag] = df[flag].iloc[-1]
-        
+                try:
+                    frame.loc[ticker, flag] = df[flag].iloc[-1]
+                
+                except:
+                    print("Error with " + ticker + " " + flag)
+                    frame.loc[ticker, flag] = 0
+                    
         # Create trend strength column that sums the trend flags and 
         # sort by this column       
         frame['Trend Strength'] = frame.iloc[:,1:].sum(axis=1)
@@ -1045,7 +1046,94 @@ class DataProcess(methods.Indicators):
         return df
 
 
-    def _importnorgate(self, tickers, lookback):
+    def date_set(self, start_date, end_date, lookback):
+        if end_date is None:
+            end_date_as_dt = (dt.datetime.today() - BDay(1)).date()
+            end_date = str(end_date_as_dt)
+        self.end_date = end_date    
+        
+        if start_date is None:
+            start_date_as_dt = (dt.datetime.today() - 
+                                pd.Timedelta(days=lookback*(365/250))).date()
+            start_date = str(start_date_as_dt)
+        self.start_date = start_date
+
+        return self
+
+
+    def generate_fields(self, ma_list=None, macd_params=None, adx_list=None, 
+                        ma_cross_list=None, price_cross_list=None, 
+                        rsi_list=None, atr_list=None):
+        
+        (ma_list, macd_params, adx_list, ma_cross_list, price_cross_list, 
+         rsi_list, atr_list) = itemgetter(
+             'ma_list', 'macd_params', 'adx_list', 'ma_cross_list', 
+             'price_cross_list', 'rsi_list', 
+             'atr_list')(self._refresh_params_default(
+                 ma_list=ma_list, macd_params=macd_params, adx_list=adx_list, 
+                 ma_cross_list=ma_cross_list, 
+                 price_cross_list=price_cross_list, rsi_list=rsi_list, 
+                 atr_list=atr_list))
+                 
+        # Add trend fields to each of the DataFrames in ticker_dict
+        self._fields(
+            ma_list=ma_list, macd_params=macd_params, adx_list=adx_list, 
+            ma_cross_list=ma_cross_list, price_cross_list=price_cross_list, 
+            rsi_list=rsi_list, atr_list=atr_list)
+    
+        return self
+    
+    
+    def generate_trend_strength(self, trend_flags=None):     
+        
+        (trend_flags) = itemgetter(
+            'trend_flags')(self._refresh_params_default(
+                 trend_flags=trend_flags))
+        
+        # Create trend strength data
+        self._trendstrength(trend_flags=trend_flags)
+        
+        return self
+
+
+
+class DataSetNorgate(DataProcess):
+    
+    
+    def __init__(self):
+        
+        # Inherit methods from DataProcess class
+        DataProcess.__init__(self)
+
+        
+    def prepnorgate(self, tickers=None, start_date=None, end_date=None, 
+                    ticker_limit=None, lookback=None):
+        """
+        Create dataframes of prices, extracting data from Norgatedata. 
+
+        Returns
+        -------
+        Dict, DataFrames
+            Dictionary of DataFrames.
+
+        """
+        
+        (ticker_limit, lookback, tickers) = itemgetter(
+            'ticker_limit', 'lookback', 'tickers')(
+                self._refresh_params_default(
+                    ticker_limit=ticker_limit, lookback=lookback, 
+                    tickers=tickers))  
+
+        self.date_set(start_date, end_date, lookback)        
+                
+        # Create dictionaries of DataFrames of prices and ticker names
+        self._importnorgate(tickers=tickers, start_date=self.start_date,
+                            end_date=self.end_date, ticker_limit=ticker_limit)
+       
+        return self
+    
+    
+    def _importnorgate(self, tickers, start_date, end_date, ticker_limit):
         """
         Return dictionary of price histories from Norgate Data.
 
@@ -1053,8 +1141,6 @@ class DataProcess(methods.Indicators):
         ----------
         tickers : List
             List of tickers, represented as strings.
-        lookback : Int
-            Number of days price history to return.
 
         Returns
         -------
@@ -1072,7 +1158,7 @@ class DataProcess(methods.Indicators):
         self.ticker_short_name_dict = {}
         
         # Loop through list of tickers
-        for ticker in tickers:
+        for ticker in tickers[:ticker_limit]:
             
             # Append 'c_' to each ticker to avoid labels starting with 
             # a number and create lowercase value
@@ -1082,72 +1168,32 @@ class DataProcess(methods.Indicators):
             # Set data format and extract each DataFrame, storing as 
             # a key-value pair in ticker_dict 
             timeseriesformat = 'pandas-dataframe'
-            self.raw_ticker_dict[lowtick] = norgatedata.price_timeseries(
-                ticker, limit = lookback, format=timeseriesformat,)
-            
-            # Extract the security name and store in ticker_name_dict
-            ticker_name = norgatedata.security_name(ticker)
-            self.ticker_name_dict[lowtick] = ticker_name
-            
-            # Truncate the ticker name to improve charting legibility 
-            # and store in ticker_short_name_dict 
-            self.ticker_short_name_dict[lowtick] = ticker_name.replace(
-                'Continuous Futures Backadjusted','')
+            try:
+                data = norgatedata.price_timeseries(
+                    ticker, start_date=start_date, end_date=end_date, 
+                    format=timeseriesformat,)
+                
+                data['Volume'] = data['Volume'].astype(int)
+                data['Delivery Month'] = data[
+                    'Delivery Month'].astype(int).astype(str)
+                data['Open Interest'] = data['Open Interest'].astype(int)
+                
+                self.raw_ticker_dict[lowtick] = data
+                
+                # Extract the security name and store in ticker_name_dict
+                ticker_name = norgatedata.security_name(ticker)
+                self.ticker_name_dict[lowtick] = ticker_name
+                
+                # Truncate the ticker name to improve charting legibility 
+                # and store in ticker_short_name_dict 
+                self.ticker_short_name_dict[lowtick] = ticker_name.partition(
+                    " Continuous")[0]
+            except:
+                print('Error with : ', ticker)
             
         return self
 
 
-
-class DataSetNorgate(DataProcess):
-    
-    
-    def __init__(self):
-        
-        # Inherit methods from DataProcess class
-        DataProcess.__init__(self)
-
-        
-    def prepnorgate(self, tickers=None, lookback=None, ma_list=None, 
-                    macd_params=None, adx_list=None, ma_cross_list=None, 
-                    price_cross_list=None, rsi_list=None, atr_list=None, 
-                    trend_flags=None):
-        """
-        Create dataframes of prices, extracting data from Norgatedata. 
-
-        Returns
-        -------
-        Dict, DataFrames
-            Dictionary of DataFrames.
-
-        """
-        
-        (tickers, lookback, ma_list, macd_params, adx_list, 
-         ma_cross_list, price_cross_list, rsi_list, atr_list, 
-         trend_flags) = itemgetter(
-             'tickers', 'lookback', 'ma_list', 'macd_params', 
-             'adx_list', 'ma_cross_list', 'price_cross_list', 'rsi_list', 
-             'atr_list', 'trend_flags')(self._refresh_params_default(
-                 tickers=tickers, lookback=lookback, 
-                 ma_list=ma_list, macd_params=macd_params, adx_list=adx_list, 
-                 ma_cross_list=ma_cross_list, 
-                 price_cross_list=price_cross_list, rsi_list=rsi_list, 
-                 atr_list=atr_list, trend_flags=trend_flags))   
-
-        # Create dictionaries of DataFrames of prices and ticker names
-        self._importnorgate(tickers=tickers, lookback=lookback)
-        
-        # Add trend fields to each of the DataFrames in ticker_dict
-        self._fields(
-            ma_list=ma_list, macd_params=macd_params, adx_list=adx_list, 
-            ma_cross_list=ma_cross_list, price_cross_list=price_cross_list, 
-            rsi_list=rsi_list, atr_list=atr_list)
-        
-        # Create trend strength data
-        self._trendstrength(trend_flags=trend_flags)
-        
-        return self
-    
-    
 
 class DataSetYahoo(DataProcess):
     
@@ -1165,10 +1211,7 @@ class DataSetYahoo(DataProcess):
 
 
     def prepyahoo(self, tickers=None, start_date=None, end_date=None, 
-                  ticker_limit=None, lookback=None, ma_list=None, 
-                  macd_params=None, adx_list=None, ma_cross_list=None, 
-                  price_cross_list=None, rsi_list=None, atr_list=None, 
-                  trend_flags=None):
+                  ticker_limit=None, lookback=None):
         """
         Create dataframes of prices, extracting data from Yahoo Finance. 
 
@@ -1181,44 +1224,18 @@ class DataSetYahoo(DataProcess):
         if tickers is None:
             tickers = self.tickers
         
-        (ticker_limit, lookback, ma_list, macd_params, adx_list, 
-         ma_cross_list, price_cross_list, rsi_list, atr_list, 
-         trend_flags) = itemgetter(
-             'ticker_limit', 'lookback', 'ma_list', 'macd_params', 
-             'adx_list', 'ma_cross_list', 'price_cross_list', 'rsi_list', 
-             'atr_list', 'trend_flags')(self._refresh_params_default(
-                 ticker_limit=ticker_limit, lookback=lookback, ma_list=ma_list, 
-                 macd_params=macd_params, adx_list=adx_list, 
-                 ma_cross_list=ma_cross_list, 
-                 price_cross_list=price_cross_list, rsi_list=rsi_list, 
-                 atr_list=atr_list, trend_flags=trend_flags))
-                
-        if end_date is None:
-            end_date_as_dt = (dt.datetime.today() - BDay(1)).date()
-            end_date = str(end_date_as_dt)
-        self.end_date = end_date    
-        
-        if start_date is None:
-            start_date_as_dt = (dt.datetime.today() - 
-                                pd.Timedelta(days=lookback*(365/250))).date()
-            start_date = str(start_date_as_dt)
-        self.start_date = start_date    
-       
-        # Create dictionaries of DataFrames of prices and ticker names
-        self._importyahoo(tickers=tickers, start_date=start_date, 
-                          end_date=end_date, ticker_limit=ticker_limit)
-        
-        # Add trend fields to each of the DataFrames in ticker_dict
-        self._fields(
-            ma_list=ma_list, macd_params=macd_params, adx_list=adx_list, 
-            ma_cross_list=ma_cross_list, price_cross_list=price_cross_list, 
-            rsi_list=rsi_list, atr_list=atr_list)
-        
-        # Create trend strength data
-        self._trendstrength(trend_flags=trend_flags)
-        
-        return self
+        (ticker_limit, lookback) = itemgetter(
+            'ticker_limit', 'lookback')(self._refresh_params_default(
+                 ticker_limit=ticker_limit, lookback=lookback))
 
+        self.date_set(start_date, end_date, lookback)        
+                
+        # Create dictionaries of DataFrames of prices and ticker names
+        self._importyahoo(tickers=tickers, start_date=self.start_date, 
+                          end_date=self.end_date, ticker_limit=ticker_limit)
+    
+        return self
+   
 
     def _importyahoo(self, tickers, start_date, end_date, ticker_limit):
         """
