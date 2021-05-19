@@ -250,7 +250,7 @@ class DataProcess(methods.Indicators):
         
         # Create short name column, stripping text from longname
         short_name = np.array(frame['Long_name'], dtype=str)
-        long_name = np.array(frame['Long_name'])
+        long_name = np.array(frame['Long_name'], dtype=str)
 
         for row in range(0, len(frame['Long_name'])):
             short_name[row] = long_name[row].partition(" Continuous")[0]
@@ -1220,6 +1220,20 @@ class DataSetYahoo(DataProcess):
         """
         Create dataframes of prices, extracting data from Yahoo Finance. 
 
+        tickers : List
+            List of tickers, represented as strings.
+        start : Str
+            Start Date represented as a string in the 
+            format 'YYYY-MM-DD'.
+        end : Str
+            End Date represented as a string in the 
+            format 'YYYY-MM-DD'.
+        ticker_limit : Int, optional
+            Flag to select only the first n markets. The default 
+            is None.
+        lookback : Int, optional
+            Number of days history if dates are not specified
+
         Returns
         -------
         Dict, DataFrames
@@ -1285,9 +1299,10 @@ class DataSetYahoo(DataProcess):
             # If error, try replacing '.' with '-' in ticker 
             except:
                 try:
-                    sym = sym.replace('.','-')
+                    sym_alt = sym.replace('.','-')
                     self.raw_ticker_dict[sym] = self._returndata(
-                        ticker=sym, start_date=start_date, end_date=end_date)
+                        ticker=sym_alt, start_date=start_date, 
+                        end_date=end_date)
                 
                 # If error, add to list of exceptions and move to next 
                 # ticker
