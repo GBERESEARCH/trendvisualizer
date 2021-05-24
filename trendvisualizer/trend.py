@@ -1047,7 +1047,7 @@ class DataProcess(methods.Indicators):
             trend_type = 'Trend Strength %'
         
         if type == 'swarm':
-            sns.set_theme(style="darkgrid", palette="viridis")
+            sns.set_style("darkgrid", {"axes.edgecolor": "black"})
             ax = sns.swarmplot(data=self.barometer, 
                                x=trend_type, 
                                y="Trend", 
@@ -1067,7 +1067,7 @@ class DataProcess(methods.Indicators):
         if type == 'strip':
             sns.set_style("darkgrid", {"axes.edgecolor": "black"})
             # Show each observation with a scatterplot
-            ax = sns.stripplot(x='Trend Strength %', 
+            ax = sns.stripplot(x=trend_type, 
                                y=sector_name,
                                data=self.barometer, 
                                dodge=True, 
