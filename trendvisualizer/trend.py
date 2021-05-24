@@ -1007,7 +1007,7 @@ class DataProcess(methods.Indicators):
         fig.subplots_adjust(top=0.9)
         
         
-    def summary_plot(self, sector_level=2, absolute=True):
+    def summary_plot(self, sector_level=2, absolute=True, type='swarm'):
         """
         Plot a summary of the strength of trend across markets        
 
@@ -1046,23 +1046,40 @@ class DataProcess(methods.Indicators):
         else:
             trend_type = 'Trend Strength %'
         
-        sns.set_theme(style="darkgrid", palette="viridis")
-        ax = sns.swarmplot(data=self.barometer, 
-                           x=trend_type, 
-                           y="Trend", 
-                           hue=sector_name,
-                           palette='cubehelix',
-                           s=marker_size)         
-        
-        ax.set(ylabel="")
-        ax.xaxis.set_major_formatter(PercentFormatter(1))
-        ax.set_title('Trend Strength by Sector', fontsize=15)
-        ax.legend(bbox_to_anchor= (1.03, 1), 
-                  title_fontsize=10,
-                  fontsize=8,
-                  title='Sector',
-                  shadow=True)
-        
+        if type == 'swarm':
+            sns.set_theme(style="darkgrid", palette="viridis")
+            ax = sns.swarmplot(data=self.barometer, 
+                               x=trend_type, 
+                               y="Trend", 
+                               hue=sector_name,
+                               palette='cubehelix',
+                               s=marker_size)         
+            
+            ax.set(ylabel="")
+            ax.xaxis.set_major_formatter(PercentFormatter(1))
+            ax.set_title('Trend Strength by Sector', fontsize=15)
+            ax.legend(bbox_to_anchor= (1.03, 1), 
+                      title_fontsize=10,
+                      fontsize=8,
+                      title='Sector',
+                      shadow=True)
+
+        if type == 'strip':
+            sns.set_style("darkgrid", {"axes.edgecolor": "black"})
+            # Show each observation with a scatterplot
+            ax = sns.stripplot(x='Trend Strength %', 
+                               y=sector_name,
+                               data=self.barometer, 
+                               dodge=True, 
+                               alpha=1, 
+                               zorder=1,
+                               palette='viridis',
+                               s=4)
+            
+            ax.set_title('Trend Strength by Sector', fontsize=15)
+            ax.xaxis.set_major_formatter(PercentFormatter(1))
+            ax.tick_params(axis='y', which='major', labelsize=8)
+            
    
     def _tickerextract(self):
         """
