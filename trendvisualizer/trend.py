@@ -1122,12 +1122,13 @@ class DataSetNorgate(DataProcess):
             Dictionary of DataFrames.
 
         """
-        
-        (ticker_limit, lookback, tickers) = itemgetter(
-            'ticker_limit', 'lookback', 'tickers')(
+        if tickers is None:
+            tickers = self._get_norgate_tickers()
+            
+        (ticker_limit, lookback) = itemgetter(
+            'ticker_limit', 'lookback')(
                 self._refresh_params_default(
-                    ticker_limit=ticker_limit, lookback=lookback, 
-                    tickers=tickers))  
+                    ticker_limit=ticker_limit, lookback=lookback))  
 
         self.date_set(start_date, end_date, lookback)        
                 
@@ -1136,6 +1137,52 @@ class DataSetNorgate(DataProcess):
                             end_date=self.end_date, ticker_limit=ticker_limit)
        
         return self
+    
+    
+    def _get_norgate_tickers(self):
+        """
+        Create list of all available Norgate Commodity tickers
+
+        Returns
+        -------
+        tickers : List
+            Returns a list of ticker codes.
+
+        """
+        
+        # Specify Norgate Cash Commodities database and extract data
+        databasename = 'Cash Commodities'
+        databasecontents = norgatedata.database(databasename)
+        
+        # Create empty dictionary to store tickers
+        ticker_dict = {}
+        
+        # For each dictionary in the data extract
+        for dicto in databasecontents:
+            # Add the symbol and security name to the ticker dict as a 
+            # key-value pair
+            key = dicto['symbol']
+            value = dicto['securityname']
+            ticker_dict[key] = value
+        
+        # Specify Norgate Continuous Futures database and extract data            
+        databasename = 'Continuous Futures'
+        databasecontents = norgatedata.database(databasename)
+
+        # For each dictionary in the data extract
+        for dicto in databasecontents:
+            # Add the symbol and security name to the ticker dict as a 
+            # key-value pair
+            key = dicto['symbol']
+            value = dicto['securityname']
+            # Only take the back-adjusted tickers
+            if '_CCB' in key:
+                ticker_dict[key] = value
+        
+        # Convert the ticker dict keys into a list
+        tickers = list(ticker_dict.keys())
+    
+        return tickers
     
     
     def _importnorgate(self, tickers, start_date, end_date, ticker_limit):
@@ -1178,23 +1225,25 @@ class DataSetNorgate(DataProcess):
                     ticker, start_date=start_date, end_date=end_date, 
                     format=timeseriesformat,)
                 
-                data['Volume'] = data['Volume'].astype(int)
-                data['Delivery Month'] = data[
-                    'Delivery Month'].astype(int).astype(str)
-                data['Open Interest'] = data['Open Interest'].astype(int)
-                
+                data = data[['Open', 'High', 'Low', 'Close']]
+                               
                 self.raw_ticker_dict[lowtick] = data
                 
                 # Extract the security name and store in ticker_name_dict
                 ticker_name = norgatedata.security_name(ticker)
                 self.ticker_name_dict[lowtick] = ticker_name
+
+            except:
+                print('Error importing : ', ticker)
                 
+            try:    
                 # Truncate the ticker name to improve charting legibility 
                 # and store in ticker_short_name_dict 
                 self.ticker_short_name_dict[lowtick] = ticker_name.partition(
                     " Continuous")[0]
+
             except:
-                print('Error with : ', ticker)
+                self.ticker_short_name_dict[lowtick] = ticker_name
             
         return self
 
