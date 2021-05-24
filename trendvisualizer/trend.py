@@ -1,17 +1,18 @@
-import norgatedata
-import requests
-import technicalmethods.methods as methods
+import copy
+import datetime as dt
 import matplotlib.dates as mdates
 import matplotlib.pyplot as plt
+import norgatedata
 import numpy as np
 import pandas as pd
+import requests
+import technicalmethods.methods as methods
 import trend_params as tp
-import datetime as dt
-import copy
+import seaborn as sns
+from matplotlib.ticker import MaxNLocator, AutoMinorLocator, PercentFormatter
+from matplotlib.dates import MO, WeekdayLocator, MonthLocator
 from operator import itemgetter
 from pandas.tseries.offsets import BDay
-from matplotlib.ticker import MaxNLocator, AutoMinorLocator
-from matplotlib.dates import MO, WeekdayLocator, MonthLocator
 from yahoofinancials import YahooFinancials
 
 
@@ -42,6 +43,10 @@ class DataProcess(methods.Indicators):
         self.mpl_line_params = self.df_dict['df_mpl_line_params']
         self.mpl_bar_params = self.df_dict['df_mpl_bar_params']
         self.mpl_chart_params = self.df_dict['df_mpl_chart_params']
+        self.sector_mappings = self.df_dict['df_sector_mappings']
+        self.equity_sectors = self.df_dict['df_equity_sectors']
+        self.commodity_sector_levels = self.df_dict['df_commodity_sector_levels']
+        self.equity_sector_levels = self.df_dict['df_equity_sector_levels']
         
     
     def _refresh_params_default(self, **kwargs):
@@ -270,8 +275,38 @@ class DataProcess(methods.Indicators):
        
         self.barometer = frame.apply(lambda x: col_color(x), axis=1)
         
+        self._barometer_sectors()
+        
         return self
+    
+    
+    def _commodity_sector_mappings(self):
+        sectors = {}
+        for key, value in self.sector_mappings.items():
+            if key[0] in ['&', '#', '@', '$']:
+                new_key = key.lower().replace(key[0], 'c_')
+            sectors[new_key] = value
+        
+        self.sector_mappings_df = pd.DataFrame.from_dict(
+            sectors, 
+            orient='index', 
+            columns=self.commodity_sector_levels)
+        
+        return self
+    
+        
+    def _barometer_sectors(self):    
+        num_flags = len(self.trend_flags)
+        self.barometer = self.barometer.join(self.sector_mappings_df)
+        self.barometer['Trend Strength %'] = self.barometer['Trend Strength'] / num_flags
+        self.barometer['Absolute Trend Strength %'] = abs(self.barometer['Trend Strength %'])
+        self.barometer = self.barometer.reset_index()
+        self.barometer = self.barometer.rename(columns={'index':'Ticker'})
+        self.barometer['Trend'] = 'Trend'
 
+        return self
+    
+    
 
     def _datalist(self, mkts, trend, market_chart, num_charts):
         """
@@ -971,6 +1006,63 @@ class DataProcess(methods.Indicators):
         st.set_y(0.95)
         fig.subplots_adjust(top=0.9)
         
+        
+    def summary_plot(self, sector_level=2, absolute=True):
+        """
+        Plot a summary of the strength of trend across markets        
+
+        Parameters
+        ----------
+        sector_level : Int, optional
+            The level of granularity of the assets. 
+            For Commodities the choices are: 
+                1:'Asset Class', 
+                2:'Broad Sector', 
+                3:'Mid Sector', 
+                4:'Narrow Sector',
+                5:'Underlying'. The default is 2:'Broad Sector'.
+            For Equities the choices are:
+                1:'Sector', 
+                2:'Industry Group', 
+                3:'Industry', 
+                4:'Sub-Industry', 
+                5:'Security'
+
+        Returns
+        -------
+        Seaborn Swarmplot of the data.
+
+        """
+        
+        if self.asset_type == 'CTA':            
+            sector_name = self.commodity_sector_levels[sector_level-1]
+            marker_size = 5
+        else:
+            sector_name = self.equity_sector_levels[sector_level-1]        
+            marker_size = 4
+        
+        if absolute:
+            trend_type = 'Absolute Trend Strength %'
+        else:
+            trend_type = 'Trend Strength %'
+        
+        sns.set_theme(style="darkgrid", palette="viridis")
+        ax = sns.swarmplot(data=self.barometer, 
+                           x=trend_type, 
+                           y="Trend", 
+                           hue=sector_name,
+                           palette='cubehelix',
+                           s=marker_size)         
+        
+        ax.set(ylabel="")
+        ax.xaxis.set_major_formatter(PercentFormatter(1))
+        ax.set_title('Trend Strength by Sector', fontsize=15)
+        ax.legend(bbox_to_anchor= (1.03, 1), 
+                  title_fontsize=10,
+                  fontsize=8,
+                  title='Sector',
+                  shadow=True)
+        
    
     def _tickerextract(self):
         """
@@ -999,6 +1091,27 @@ class DataProcess(methods.Indicators):
         # create a dictionary mapping ticker to Security Name
         self.ticker_name_dict = dict(zip(spx_table['Symbol'], 
                                     spx_table['Security']))
+        
+        equity_sectors_df = pd.DataFrame.from_dict(
+            self.equity_sectors, 
+            orient='index', 
+            columns=['Sector', 
+                     'Industry Group',
+                     'Industry'])
+
+        equity_sectors_df = equity_sectors_df.reset_index()
+        equity_sectors_df = equity_sectors_df.rename(
+            columns={'index':'Sub-Industry'})        
+       
+        self.sector_mappings_df = spx_table.merge(equity_sectors_df, 
+                                                  how='left', 
+                                                  left_on='GICS Sub-Industry', 
+                                                  right_on='Sub-Industry')
+        
+        self.sector_mappings_df = self.sector_mappings_df.set_index('Symbol')
+        self.sector_mappings_df = self.sector_mappings_df[
+            ['Sector', 'Industry Group', 'Industry', 'Sub-Industry', 
+             'Security']]
         
         return self    
 
@@ -1122,6 +1235,9 @@ class DataSetNorgate(DataProcess):
             Dictionary of DataFrames.
 
         """
+        
+        self.asset_type = 'CTA'
+        
         if tickers is None:
             tickers = self._get_norgate_tickers()
             
@@ -1135,6 +1251,8 @@ class DataSetNorgate(DataProcess):
         # Create dictionaries of DataFrames of prices and ticker names
         self._importnorgate(tickers=tickers, start_date=self.start_date,
                             end_date=self.end_date, ticker_limit=ticker_limit)
+        
+        self._commodity_sector_mappings()
        
         return self
     
@@ -1289,6 +1407,8 @@ class DataSetYahoo(DataProcess):
             Dictionary of DataFrames.
 
         """
+        self.asset_type = 'Equity'
+        
         if tickers is None:
             tickers = self.tickers
         
