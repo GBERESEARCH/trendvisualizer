@@ -74,7 +74,14 @@ trend_params_dict = {
          'ytick.major.pad':10,
          'lines.linewidth':3.0,
          'grid.color':'black',
-         'grid.linestyle':':'
+         'grid.linestyle':':',
+         'legend.frameon':True,
+         'legend.framealpha':1,
+         'legend.shadow':True,
+         'legend.facecolor':'white',
+         'legend.edgecolor':'black',
+         'legend.title_fontsize':15,
+         'legend.fontsize':10,         
          },
      
      'df_mpl_bar_params':{
@@ -107,9 +114,26 @@ trend_params_dict = {
          'grid.linestyle':':'
          },
      
+     'df_mpl_summary_params':{
+         'figure.dpi':100,
+         'axes.edgecolor':'black',
+         'axes.titlepad':15,
+         'axes.xmargin':0.05,
+         'axes.ymargin':0.05,
+         'axes.linewidth':2,
+         'axes.facecolor':(0.8, 0.8, 0.9, 0.5),
+         'legend.facecolor':(0.8, 0.8, 0.9, 0.5),
+         'legend.edgecolor':'black',
+         'xtick.major.pad':10,
+         'ytick.major.pad':10,
+         'lines.linewidth':3.0,
+         'grid.color':'black',
+         'grid.linestyle':':'
+         },
+     
      'df_lookback':500,
      'df_ticker_limit':None,
-     'df_mkts':5,
+     'df_mkts':10,
      'df_trend':'strong',
      'df_days':60,
      'df_norm':True,
@@ -129,6 +153,14 @@ trend_params_dict = {
          'Industry', 
          'Sub-Industry', 
          'Security'],   
+     
+     'df_ticker_types':{
+         '&':'c_', # continuous future 
+         '#':'r_', # ratio
+         '@':'s_', # spot cash commodity
+         '$':'i_', # index
+         '%':'y_'  # yield
+         },
     
      'df_sector_mappings':{
          '&6A_CCB':('Currencies', 'G10 Currencies', 'G10 Currencies', 'G10 Currencies', 'AUD'), # AUD

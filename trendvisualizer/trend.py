@@ -2,6 +2,7 @@ import copy
 import datetime as dt
 import matplotlib.dates as mdates
 import matplotlib.pyplot as plt
+import math
 import norgatedata
 import numpy as np
 import pandas as pd
@@ -43,10 +44,14 @@ class DataProcess(methods.Indicators):
         self.mpl_line_params = self.df_dict['df_mpl_line_params']
         self.mpl_bar_params = self.df_dict['df_mpl_bar_params']
         self.mpl_chart_params = self.df_dict['df_mpl_chart_params']
+        self.mpl_summary_params = self.df_dict['df_mpl_summary_params']
+        
+        # Default sector mapping info
         self.sector_mappings = self.df_dict['df_sector_mappings']
         self.equity_sectors = self.df_dict['df_equity_sectors']
         self.commodity_sector_levels = self.df_dict['df_commodity_sector_levels']
         self.equity_sector_levels = self.df_dict['df_equity_sector_levels']
+        self.ticker_types = self.df_dict['df_ticker_types']
         
     
     def _refresh_params_default(self, **kwargs):
@@ -84,24 +89,133 @@ class DataProcess(methods.Indicators):
         return kwargs    
 
 
+    def _date_set(self, start_date, end_date, lookback):
+        """
+        Create start and end dates if not supplied
+
+        Parameters
+        ----------
+        start_date : Str, optional
+            Date to begin backtest. Format is YYYY-MM-DD. The default is 500 
+            business days prior (circa 2 years).
+        end_date : Str, optional
+            Date to end backtest. Format is YYYY-MM-DD. The default is the 
+            last business day.
+        lookback : Int, optional
+            Number of business days to use for the backtest. The default is 500 
+            business days (circa 2 years).
+
+        Returns
+        -------
+        Str
+            Assigns start and end dates to the object.
+
+        """
+        
+        # If end date is not supplied, set to previous working day
+        if end_date is None:
+            end_date_as_dt = (dt.datetime.today() - BDay(1)).date()
+            end_date = str(end_date_as_dt)
+        self.end_date = end_date    
+        
+        # If start date is not supplied, set to today minus lookback period
+        if start_date is None:
+            start_date_as_dt = (dt.datetime.today() - 
+                                pd.Timedelta(days=lookback*(365/250))).date()
+            start_date = str(start_date_as_dt)
+        self.start_date = start_date
+
+        return self
+
+
+    def generate_fields(self, ma_list=None, macd_params=None, adx_list=None, 
+                        ma_cross_list=None, price_cross_list=None, 
+                        rsi_list=None, atr_list=None):
+        """
+        Generate the indicators used to calculate trend strength
+
+        Parameters
+        ----------
+        ma_list : List, optional
+            List of Moving Average periods. The default is 
+            [10, 20, 30, 50, 100, 200].
+        macd_params : List, optional
+            List of MACD parameters. The default is [12, 26, 9].
+        adx_list : List, optional
+            List of ADX periods. The default is [10, 20, 30, 50, 100, 200].
+        ma_cross_list : List, optional
+            List of Moving Average Crossover periods. The default is 
+            [(10, 30), (20, 50), (50, 200)].
+        price_cross_list : List, optional
+            List of Moving Average Price Crossover periods. The default is 
+            [10, 20, 30, 50, 100, 200].
+        rsi_list : List, optional
+            List of RSI periods. The default is [10, 20, 30, 50, 100, 200].
+        atr_list : List, optional
+            List of ATR periods. The default is [14].
+
+        Returns
+        -------
+        Dict
+            DataFrames of each ticker updated with additional trend indicators.
+
+        """
+        # Set the lists of parameters used to calculate the trend indicators
+        # either to those supplied or to the default values
+        (ma_list, macd_params, adx_list, ma_cross_list, price_cross_list, 
+         rsi_list, atr_list) = itemgetter(
+             'ma_list', 'macd_params', 'adx_list', 'ma_cross_list', 
+             'price_cross_list', 'rsi_list', 
+             'atr_list')(self._refresh_params_default(
+                 ma_list=ma_list, macd_params=macd_params, adx_list=adx_list, 
+                 ma_cross_list=ma_cross_list, 
+                 price_cross_list=price_cross_list, rsi_list=rsi_list, 
+                 atr_list=atr_list))
+                 
+        # Add trend fields to each of the DataFrames in ticker_dict
+        self._fields(
+            ma_list=ma_list, macd_params=macd_params, adx_list=adx_list, 
+            ma_cross_list=ma_cross_list, price_cross_list=price_cross_list, 
+            rsi_list=rsi_list, atr_list=atr_list)
+    
+        return self
+           
+
     def _fields(self, ma_list, macd_params, adx_list, 
                ma_cross_list, price_cross_list, rsi_list, atr_list):
         """
         Create and add various trend indicators to each DataFrame in 
-        the dictionary of tickers 
-        
+        the dictionary of tickers    
+
         Parameters
         ----------
-        ticker_dict : Dict
-            Dictionary of price history DataFrames, one for each ticker.
+        ma_list : List, optional
+            List of Moving Average periods. The default is 
+            [10, 20, 30, 50, 100, 200].
+        macd_params : List, optional
+            List of MACD parameters. The default is [12, 26, 9].
+        adx_list : List, optional
+            List of ADX periods. The default is [10, 20, 30, 50, 100, 200].
+        ma_cross_list : List, optional
+            List of Moving Average Crossover periods. The default is 
+            [(10, 30), (20, 50), (50, 200)].
+        price_cross_list : List, optional
+            List of Moving Average Price Crossover periods. The default is 
+            [10, 20, 30, 50, 100, 200].
+        rsi_list : List, optional
+            List of RSI periods. The default is [10, 20, 30, 50, 100, 200].
+        atr_list : List, optional
+            List of ATR periods. The default is [14].
 
         Returns
         -------
-        ticker_dict : Dict
-            Dictionary of price history DataFrames, one for each ticker.
+        Dict
+            DataFrames of each ticker updated with additional trend indicators.
 
         """
         
+        # Initialize dictionary of DataFrames of tickers, taking a copy of the 
+        # raw ticker dictionary
         self.ticker_dict = copy.deepcopy(self.raw_ticker_dict)
         
         # Loop through each ticker in ticker_dict
@@ -190,6 +304,56 @@ class DataProcess(methods.Indicators):
         return self
 
 
+    def generate_trend_strength(self, trend_flags=None):     
+        """
+        Generate data to show the strength of the trend
+
+        Parameters
+        ----------
+        trend_flags : List, optional
+            The list of indicators used to calculate the strength of the trend. 
+            The default values are ['PX_MA_10',
+                                    'ADX_10_flag',
+                                    'RSI_10_flag',
+                                    'MA_10_30',
+                                    'MACD_flag',           
+                                    'PX_MA_20',
+                                    'MA_20_50',
+                                    'ADX_20_flag',
+                                    'RSI_20_flag',
+                                    'PX_MA_30',
+                                    'ADX_30_flag',
+                                    'RSI_30_flag',
+                                    'PX_MA_50',
+                                    'MA_50_200',
+                                    'ADX_50_flag',
+                                    'RSI_50_flag',
+                                    'PX_MA_100',
+                                    'ADX_100_flag',
+                                    'RSI_100_flag',
+                                    'PX_MA_200',
+                                    'ADX_200_flag',
+                                    'RSI_200_flag'
+                                    ].
+
+        Returns
+        -------
+        DataFrame
+            DataFrame of trend strength for each ticker.
+
+        """
+        # Set the list of trend indicators to be used in calculating trend 
+        # strength either to that supplied or to the default values
+        (trend_flags) = itemgetter(
+            'trend_flags')(self._refresh_params_default(
+                 trend_flags=trend_flags))
+        
+        # Create trend strength data
+        self._trendstrength(trend_flags=trend_flags)
+        
+        return self
+
+
     def _trendstrength(self, trend_flags=None):
         """
         Create a DataFrame showing the strength of trend for selected 
@@ -197,13 +361,32 @@ class DataProcess(methods.Indicators):
 
         Parameters
         ----------
-        ticker_dict : Dict
-            Dictionary of price history DataFrames, one for each ticker.
-        ticker_name_dict : Dict
-            Dictionary mapping ticker to long name for each ticker.
+
         trend_flags : List
-            List of the trend indicators to be used to calculate 
-            strength of trend. The default is default_trend_flags.
+            The list of indicators used to calculate the strength of the trend. 
+            The default values are ['PX_MA_10',
+                                    'ADX_10_flag',
+                                    'RSI_10_flag',
+                                    'MA_10_30',
+                                    'MACD_flag',           
+                                    'PX_MA_20',
+                                    'MA_20_50',
+                                    'ADX_20_flag',
+                                    'RSI_20_flag',
+                                    'PX_MA_30',
+                                    'ADX_30_flag',
+                                    'RSI_30_flag',
+                                    'PX_MA_50',
+                                    'MA_50_200',
+                                    'ADX_50_flag',
+                                    'RSI_50_flag',
+                                    'PX_MA_100',
+                                    'ADX_100_flag',
+                                    'RSI_100_flag',
+                                    'PX_MA_200',
+                                    'ADX_200_flag',
+                                    'RSI_200_flag'
+                                    ].
 
         Returns
         -------
@@ -275,284 +458,47 @@ class DataProcess(methods.Indicators):
        
         self.barometer = frame.apply(lambda x: col_color(x), axis=1)
         
+        # Apply sector mappings
         self._barometer_sectors()
         
         return self
     
-    
-    def _commodity_sector_mappings(self):
-        sectors = {}
-        for key, value in self.sector_mappings.items():
-            if key[0] in ['&', '#', '@', '$']:
-                new_key = key.lower().replace(key[0], 'c_')
-            sectors[new_key] = value
-        
-        self.sector_mappings_df = pd.DataFrame.from_dict(
-            sectors, 
-            orient='index', 
-            columns=self.commodity_sector_levels)
-        
-        return self
-    
-        
+
     def _barometer_sectors(self):    
+        """
+        Add sector mappings to the trend barometer table to use in summary 
+        graph
+
+        Returns
+        -------
+        DataFrame
+            barometer updated with additional sector columns.
+
+        """
+        
+        # Calculate the number of trend indicators
         num_flags = len(self.trend_flags)
+        
+        # Join the baometer table to the sector mappings table
         self.barometer = self.barometer.join(self.sector_mappings_df)
-        self.barometer['Trend Strength %'] = self.barometer['Trend Strength'] / num_flags
-        self.barometer['Absolute Trend Strength %'] = abs(self.barometer['Trend Strength %'])
+        
+        # Calculate Trend Strength as a percentage by dividing by the number 
+        # of trend indicators
+        self.barometer['Trend Strength %'] = self.barometer[
+            'Trend Strength'] / num_flags
+        
+        # Calculate the absolute value of trend strength as a percentage
+        self.barometer['Absolute Trend Strength %'] = abs(
+            self.barometer['Trend Strength %'])
+        
+        # Reset the index and rename column as 'Ticker
         self.barometer = self.barometer.reset_index()
         self.barometer = self.barometer.rename(columns={'index':'Ticker'})
+        
+        # Add a column as the string 'Trend' to use in swarm plot
         self.barometer['Trend'] = 'Trend'
 
         return self
-    
-    
-
-    def _datalist(self, mkts, trend, market_chart, num_charts):
-        """
-        Create a list of the most / least trending markets.
-
-        Parameters
-        ----------
-        mkts : Int
-            Number of markets to chart. The default is 5.
-        trend : Str
-            Flag to select most or least trending markets. 
-            Select from: 'up' - strongly trending upwards, 
-                         'down - strongly trending downwards, 
-                         'neutral' - weak trend, 
-                         'strong' - up and down trends, 
-                         'all' - up down and weak trends
-            The default is 'strong' which displays both up-trending 
-            and down-trending markets.
-        market_chart : Bool 
-            Whether the data is used for the marketchart graph. The 
-            default is False    
-        num_charts : Int
-            The number of sub plots in the market chart. The default is 40. 
-
-        Returns
-        -------
-        data_list : List
-            List of markets to be charted.
-
-        """
-        
-        # Take data from the trend strength table         
-        barometer = self.barometer   
-                        
-        # if trend flag is 'up', select tickers of most up trending 
-        # markets 
-        if trend == 'up':
-            
-            # Sort by Trend Strength
-            barometer = barometer.sort_values(
-                by=['Trend Strength'], ascending=False)
-            
-            if market_chart:
-                # Select the specified number of highest values
-                data_list = list(barometer.index[:num_charts])
-                
-            else:                
-                # Select the highest values
-                data_list = list(barometer.index[:mkts])
-            
-        
-        # if trend flag is 'down', select tickers of most down trending 
-        # markets
-        elif trend == 'down':
-            
-            # Sort by Trend Strength
-            barometer = barometer.sort_values(
-                by=['Trend Strength'], ascending=False)
-            
-            if market_chart:
-                # Select the specified number of lowest values
-                data_list = list(barometer.index[-num_charts:])
-                
-            else:    
-                # Select the lowest values
-                data_list = list(barometer.index[-mkts:])
-        
-        
-        # if trend flag is 'neutral', select tickers of least trending 
-        # markets        
-        elif trend == 'neutral':
-            
-            # Sort by Absolute Trend Strength
-            barometer = barometer.sort_values(
-                by=['Absolute Trend Strength'], ascending=False)
-            
-            if market_chart:
-                # Select the specified number of lowest values
-                data_list = list(barometer.index[-num_charts:])
-            
-            else:
-                # Select the lowest values
-                data_list = list(barometer.index[-mkts:])
-        
-        
-        # if trend flag is 'strong', select tickers of most down trending 
-        # markets
-        elif trend == 'strong':
-            
-            # Sort by Trend Strength
-            barometer = barometer.sort_values(
-                by=['Trend Strength'], ascending=False)
-            
-            if market_chart:
-                # Select the specified number of highest values
-                top = list(barometer.index[:int(num_charts/2)])
-            
-                # Select the lowest values
-                bottom = list(barometer.index[
-                    -(num_charts-int(num_charts/2)):])
-            
-            else:
-                # Select the highest values
-                top = list(barometer.index[:mkts])
-            
-                # Select the lowest values
-                bottom = list(barometer.index[-mkts:])
-            
-            # Combine this data
-            data_list = top + bottom
-       
-        
-        # Otherwise select all 3
-        else: 
-            
-            # Sort by Trend Strength
-            barometer = barometer.sort_values(
-                by=['Trend Strength'], ascending=False)
-            
-            if market_chart:
-                # Select 1/3 of the specified number of highest values
-                top = list(barometer.index[:int(num_charts/3)])
-                
-                # Select 1/3 of the specified number of lowest values
-                bottom = list(barometer.index[-int(num_charts/3):])
-                
-                # Sort by Absolute Trend Strength
-                barometer = barometer.sort_values(
-                    by=['Absolute Trend Strength'], ascending=False)
-                
-                # Select 1/3 of the specified number of lowest values
-                neutral = list(barometer.index[
-                    -(num_charts-2*int(num_charts/3)):])
-            
-            else:
-                # Select the highest values
-                top = list(barometer.index[:mkts])
-                
-                # Select the lowest values
-                bottom = list(barometer.index[-mkts:])
-                
-                # Sort by Absolute Trend Strength
-                barometer = barometer.sort_values(
-                    by=['Absolute Trend Strength'], ascending=False)
-                
-                # Select the lowest values
-                neutral = list(barometer.index[-mkts:])
-            
-            # Combine this data
-            data_list = top + bottom + neutral
-      
-        self.data_list = data_list
-      
-        return self
-    
-    
-    def _chartdata(self, mkts, trend):
-        """
-        Create a time series of closing prices for selected markets.
-
-        Parameters
-        ----------
-        mkts : Int
-            Number of markets to chart. The default is 5.
-        trend : Str
-            Flag to select most or least trending markets. 
-            Select from: 'up' - strongly trending upwards, 
-                         'down - strongly trending downwards, 
-                         'neutral' - weak trend, 
-                         'strong' - up and down trends, 
-                         'all' - up down and weak trends
-            The default is 'strong' which displays both up-trending 
-            and down-trending markets.
-
-        Returns
-        -------
-        chart_data : DataFrame
-            DataFrame of closing prices of tickers selected by trend 
-            strength.
-        
-        """
-
-        self._datalist(mkts=mkts, trend=trend, market_chart=False, 
-                       num_charts=None)
-        
-        # Create a new DataFrame
-        chart_data = pd.DataFrame()
-        
-        # For each ticker in the list of selected tickers, add the 
-        # column of closing prices to new DataFrame
-        for ticker in self.data_list:
-            chart_data[ticker] = self.ticker_dict[ticker]['Close']
-        
-        # Rename columns from tickers to short names and forward fill 
-        # any NaN cells
-        chart_data = chart_data.rename(columns=self.ticker_short_name_dict)
-        chart_data = chart_data.fillna(method='ffill')
-                     
-        self.chart_data = chart_data 
-                
-        return self
-
-
-    def _normdata(self, mkts, trend, days):
-        """
-        Create a subset of chart_prep dataset normalized to start from 
-        100 for the specified history window
-
-        Parameters
-        ----------
-        mkts : Int
-            Number of markets to chart. The default is 5.
-        trend : Str
-            Flag to select most or least trending markets. 
-            Select from: 'up' - strongly trending upwards, 
-                         'down - strongly trending downwards, 
-                         'neutral' - weak trend, 
-                         'strong' - up and down trends, 
-                         'all' - up down and weak trends
-            The default is 'strong' which displays both up-trending 
-            and down-trending markets.
-        days : Int
-            Number of days of history. The default is 60.
-
-        Returns
-        -------
-        tenor : DataFrame
-            DataFrame of closing prices, normalized for a given historic 
-            window
-
-        """
-        
-        self._chartdata(mkts=mkts, trend=trend)
-        
-        # Copy the selected number of days history from the input 
-        # DataFrame
-        tenor = copy.deepcopy(self.chart_data[-days:])
-        
-        # Normalize the closing price of each ticker to start from 100 
-        # at the beginning of the history window
-        for ticker in tenor.columns:
-            tenor[ticker] = tenor[ticker].div(tenor[ticker].iloc[0]).mul(100) 
-        
-        self.tenor = tenor
-        
-        return self    
 
 
     def trendbarchart(self, mkts=None, trend=None):
@@ -584,17 +530,30 @@ class DataProcess(methods.Indicators):
             'mkts', 'trend')(self._refresh_params_default(
                  mkts=mkts, trend=trend))
 
-        barometer = self.barometer
+        # Take a copy of the barometer table        
+        barometer = copy.deepcopy(self.barometer)
         
         # Initialize the figure
         plt.style.use('seaborn-darkgrid')
         plt.rcParams.update(self.mpl_bar_params)
-        fig, ax = plt.subplots()
+        fig, ax = plt.subplots(figsize=(8,8))
         plt.tight_layout()
-        
+       
         # Set the xticks to be integer values
-        ax.xaxis.set_major_locator(MaxNLocator(integer=True))
+        ax.xaxis.set_major_locator(MaxNLocator())#integer=True))
         
+        # Set the x axis to be in percentages
+        ax.xaxis.set_major_formatter(PercentFormatter(1))
+        
+        # Set the spacing between y axis and labels
+        ax.yaxis.set_tick_params(pad=15)
+
+        # Set axis tick label size
+        ax.tick_params(axis='y', which='major', labelsize=int(0.6*(50-mkts)))
+        ax.tick_params(axis='y', which='minor', labelsize=int(0.6*(50-mkts)))
+        ax.tick_params(axis='x', which='major', labelsize=14)
+        ax.tick_params(axis='x', which='minor', labelsize=14)
+                
         # Set the yticks to be horizontal
         plt.yticks(rotation=0)
         
@@ -602,25 +561,31 @@ class DataProcess(methods.Indicators):
         # greatest up trend indication
         if trend == 'up':
             
+            # Set the x-axis range
+            ax.set_xlim([0,1])
+            
             # Sort by Trend Strength
             barometer = barometer.sort_values(
-                by=['Trend Strength'], ascending=False)
+                by=['Trend Strength %'], ascending=True)
             
-            plt.barh(barometer['Short_name'][:mkts], 
-                     barometer['Trend Strength'][:mkts], 
-                     color=list(barometer['Trend Color'][:mkts]))
+            plt.barh(barometer['Short_name'][-mkts:], 
+                     barometer['Trend Strength %'][-mkts:], 
+                     color=list(barometer['Trend Color'][-mkts:]))
             titlestr = 'Up'
             
         # If the trend flag is set to 'down', show the markets with 
         # greatest down trend indication    
         elif trend == 'down':
+            
+            # Set the x-axis range
+            ax.set_xlim([-1,0])
            
             # Sort by Trend Strength
             barometer = barometer.sort_values(
-                by=['Trend Strength'], ascending=False)     
+                by=['Trend Strength %'], ascending=False)     
                         
             plt.barh(barometer['Short_name'][-mkts:], 
-                     barometer['Trend Strength'][-mkts:], 
+                     barometer['Trend Strength %'][-mkts:], 
                      color=list(barometer['Trend Color'][-mkts:]))
             titlestr = 'Down'
         
@@ -628,39 +593,47 @@ class DataProcess(methods.Indicators):
         # lowest trend indication    
         elif trend == 'neutral':
             
+            # Set the x-axis range
+            ax.set_xlim([-1,1])
+            
             # Sort by Absolute Trend Strength
             barometer = barometer.sort_values(
-                by=['Absolute Trend Strength'], ascending=False)
+                by=['Absolute Trend Strength %'], ascending=True)
             
-            plt.barh(barometer['Short_name'][-mkts:], 
-                     barometer['Trend Strength'][-mkts:], 
-                     color=list(barometer['Trend Color'][-mkts:]))
+            plt.barh(barometer['Short_name'][:mkts], 
+                     barometer['Trend Strength %'][:mkts], 
+                     color=list(barometer['Trend Color'][:mkts]),
+                     #height=0.5,
+                     )
             titlestr = 'Neutral'
         
         # If the trend flag is set to 'strong', show the markets with 
         # greatest trend indication both up and down
         elif trend == 'strong':
             
+            # Set the x-axis range
+            ax.set_xlim([-1,1])
+            
             # Sort by Absolute Trend Strength
             barometer = barometer.sort_values(
-                by=['Absolute Trend Strength'], ascending=False)
+                by=['Absolute Trend Strength %'], ascending=True)
             
-            plt.barh(barometer['Short_name'][:mkts], 
-                     barometer['Trend Strength'][:mkts], 
-                     color=list(barometer['Trend Color'][:mkts]))
+            plt.barh(barometer['Short_name'][-mkts:], 
+                     barometer['Trend Strength %'][-mkts:], 
+                     color=list(barometer['Trend Color'][-mkts:]))
             titlestr = 'Strongly'
         
         
         # Label xaxis
-        plt.xlabel("Trend Strength") 
+        plt.xlabel("Trend Strength", fontsize=20, labelpad=10) 
         
         # Set title
         plt.suptitle(titlestr+' Trending Markets', 
-                     fontsize=12, 
+                     fontsize=28, 
                      fontweight=0, 
                      color='black', 
                      style='italic', 
-                     y=1.02)        
+                     y=1.05)        
                 
         plt.show()
         
@@ -753,11 +726,12 @@ class DataProcess(methods.Indicators):
         ax.yaxis.tick_right()
         
         # Set ytick labels 
-        yticklabels = (int(round(tenor.min().min(), -1)),
-                       100 - int((abs(100 - round(tenor.min().min(), -1))) / 2),
-                       100, 
-                       100 + int((abs(100 - round(tenor.max().max(), -1))) / 2),
-                       int(round(tenor.max().max(), -1)))
+        yticklabels = (
+            int(round(tenor.min().min(), -1)),
+            100 - int((abs(100 - round(tenor.min().min(), -1))) / 2),
+            100, 
+            100 + int((abs(100 - round(tenor.max().max(), -1))) / 2),
+            int(round(tenor.max().max(), -1)))
         ax.set_yticks(yticklabels)
         
         # Set x axis range
@@ -772,10 +746,25 @@ class DataProcess(methods.Indicators):
         
         # Set x and y labels and title
         ax.set_xlabel('Date', fontsize=18)
-        ax.set_ylabel('Return', fontsize=18, rotation=0)
+        ax.set_ylabel('Return %', fontsize=18, rotation=0)
         
-        # Set the legend 
-        plt.legend(loc='upper left', labels=tenor.columns)
+        # Set the legend
+        upper_anchor = 1.15 + mkts/250
+        #plt.legend(loc='upper left', labels=tenor.columns)
+        plt.legend(bbox_to_anchor=(0.5, upper_anchor), #1.21), #-0.4,1), #1.05, 1), 
+                  #title_fontsize=15,
+                  #fontsize=10,
+                  #title='Asset',
+                  #shadow=True,
+                  labels=tenor.columns,
+                  loc='upper center',
+                  #edgecolor='black',
+                  #facecolor='white', #(0.8, 0.8, 0.9, 0.5),
+                  ncol=4,
+                  #frameon=True,
+                  #framealpha=1
+                  )
+        
         
         # Set xtick labels at 0 degrees and fontsize of x and y ticks 
         # to 15
@@ -783,19 +772,20 @@ class DataProcess(methods.Indicators):
         plt.yticks(fontsize=15)
         
         # Set title
+        dynamic_y = 1.05 + mkts/500
         plt.suptitle('Relative Return Over Last '
                      +str(len(tenor))+' Trading Days', 
                      fontsize=25, 
                      fontweight=0, 
                      color='black', 
                      style='italic', 
-                     y=0.98)        
+                     y=dynamic_y) #1.08) #0.98)        
         
         plt.show()    
         
    
     def marketchart(self, days=None, trend=None, norm=None, 
-                    chart_dimensions=None):
+                    chart_dimensions=None, mkts=None):
         """
         Create a chart showing the top and bottom 20 trending markets.
 
@@ -824,14 +814,19 @@ class DataProcess(methods.Indicators):
             Returns chart of multiple markets.
 
         """
- 
+        
         # If data is not supplied as an input, take default values
         days, trend, norm, chart_dimensions = itemgetter(
              'days', 'trend', 'norm', 
              'chart_dimensions')(self._refresh_params_default(
                  days=days, trend=trend, norm=norm, 
                  chart_dimensions=chart_dimensions))
-      
+
+        # If a mkts parameter has been specified then create a tuple of chart 
+        # dimensions         
+        if mkts is not None:
+            chart_dimensions = self._mkt_dims(mkts)
+                 
         self.num_charts = int(chart_dimensions[0] * chart_dimensions[1])         
                  
         self._datalist(mkts=None, trend=trend, market_chart=True, 
@@ -1005,9 +1000,309 @@ class DataProcess(methods.Indicators):
         
         st.set_y(0.95)
         fig.subplots_adjust(top=0.9)
+
+
+    def _mkt_dims(self, mkts):
+        """
+        Create a tuple giving the height and width of the market chart
+
+        Parameters
+        ----------
+        mkts : Int
+            Number of markets to chart.
+
+        Returns
+        -------
+        chart_dimensions : Tuple
+            Tuple of height, width for market chart.
+
+        """
+        if mkts < 20:
+            if mkts % 5 == 0:
+                width = 5
+            elif mkts % 4 == 0:
+                width = 4
+            elif mkts % 3 == 0:
+                width = 3
+            elif (mkts+1) % 5 == 0:
+                width = 5
+            elif (mkts+1) % 4 == 0:
+                width = 4    
+            elif (mkts+1) % 3 == 0:
+                width = 3        
+            else:
+                width = 5
+        elif mkts < 40:
+            if mkts % 5 == 0:
+                width = 5
+            elif mkts % 4 == 0:
+                width = 4
+            elif (mkts+1) % 5 == 0:
+                width = 5
+            elif (mkts+1) % 4 == 0:
+                width = 4    
+            else:
+                width = 5
+        else:
+            width = 5
+    
+        height = math.ceil(mkts/width)                
+        chart_dimensions = (height, width)
+        
+        return chart_dimensions
+
+
+    def _normdata(self, mkts, trend, days):
+        """
+        Create a subset of chart_prep dataset normalized to start from 
+        100 for the specified history window
+
+        Parameters
+        ----------
+        mkts : Int
+            Number of markets to chart. The default is 5.
+        trend : Str
+            Flag to select most or least trending markets. 
+            Select from: 'up' - strongly trending upwards, 
+                         'down - strongly trending downwards, 
+                         'neutral' - weak trend, 
+                         'strong' - up and down trends, 
+                         'all' - up down and weak trends
+            The default is 'strong' which displays both up-trending 
+            and down-trending markets.
+        days : Int
+            Number of days of history. The default is 60.
+
+        Returns
+        -------
+        tenor : DataFrame
+            DataFrame of closing prices, normalized for a given historic 
+            window
+
+        """
+        
+        self._chartdata(mkts=mkts, trend=trend)
+        
+        # Copy the selected number of days history from the input 
+        # DataFrame
+        tenor = copy.deepcopy(self.chart_data[-days:])
+        
+        # Normalize the closing price of each ticker to start from 100 
+        # at the beginning of the history window
+        for ticker in tenor.columns:
+            tenor[ticker] = tenor[ticker].div(tenor[ticker].iloc[0]).mul(100) 
+        
+        self.tenor = tenor
+        
+        return self    
+
+
+    def _chartdata(self, mkts, trend):
+        """
+        Create a time series of closing prices for selected markets.
+
+        Parameters
+        ----------
+        mkts : Int
+            Number of markets to chart. The default is 5.
+        trend : Str
+            Flag to select most or least trending markets. 
+            Select from: 'up' - strongly trending upwards, 
+                         'down - strongly trending downwards, 
+                         'neutral' - weak trend, 
+                         'strong' - up and down trends, 
+                         'all' - up down and weak trends
+            The default is 'strong' which displays both up-trending 
+            and down-trending markets.
+
+        Returns
+        -------
+        chart_data : DataFrame
+            DataFrame of closing prices of tickers selected by trend 
+            strength.
+        
+        """
+
+        self._datalist(mkts=mkts, trend=trend, market_chart=False, 
+                       num_charts=None)
+        
+        # Create a new DataFrame
+        chart_data = pd.DataFrame()
+        
+        # For each ticker in the list of selected tickers, add the 
+        # column of closing prices to new DataFrame
+        for ticker in self.data_list:
+            chart_data[ticker] = self.ticker_dict[ticker]['Close']
+        
+        # Rename columns from tickers to short names and forward fill 
+        # any NaN cells
+        chart_data = chart_data.rename(columns=self.ticker_short_name_dict)
+        chart_data = chart_data.fillna(method='ffill')
+                     
+        self.chart_data = chart_data 
+                
+        return self
+    
+
+    def _datalist(self, mkts, trend, market_chart, num_charts):
+        """
+        Create a list of the most / least trending markets.
+
+        Parameters
+        ----------
+        mkts : Int
+            Number of markets to chart. The default is 5.
+        trend : Str
+            Flag to select most or least trending markets. 
+            Select from: 'up' - strongly trending upwards, 
+                         'down - strongly trending downwards, 
+                         'neutral' - weak trend, 
+                         'strong' - up and down trends, 
+                         'all' - up down and weak trends
+            The default is 'strong' which displays both up-trending 
+            and down-trending markets.
+        market_chart : Bool 
+            Whether the data is used for the marketchart graph. The 
+            default is False    
+        num_charts : Int
+            The number of sub plots in the market chart. The default is 40. 
+
+        Returns
+        -------
+        data_list : List
+            List of markets to be charted.
+
+        """
+        
+        # Take data from the trend strength table         
+        barometer = self.barometer   
+                        
+        # if trend flag is 'up', select tickers of most up trending 
+        # markets 
+        if trend == 'up':
+            
+            # Sort by Trend Strength
+            barometer = barometer.sort_values(
+                by=['Trend Strength'], ascending=False)
+            
+            if market_chart:
+                # Select the specified number of highest values
+                data_list = list(barometer['Ticker'][:num_charts])
+                
+            else:                
+                # Select the highest values
+                data_list = list(barometer['Ticker'][:mkts])
+            
+        
+        # if trend flag is 'down', select tickers of most down trending 
+        # markets
+        elif trend == 'down':
+            
+            # Sort by Trend Strength
+            barometer = barometer.sort_values(
+                by=['Trend Strength'], ascending=False)
+            
+            if market_chart:
+                # Select the specified number of lowest values
+                data_list = list(barometer['Ticker'][-num_charts:])
+                
+            else:    
+                # Select the lowest values
+                data_list = list(barometer['Ticker'][-mkts:])
         
         
-    def summary_plot(self, sector_level=2, absolute=True, type='swarm'):
+        # if trend flag is 'neutral', select tickers of least trending 
+        # markets        
+        elif trend == 'neutral':
+            
+            # Sort by Absolute Trend Strength
+            barometer = barometer.sort_values(
+                by=['Absolute Trend Strength'], ascending=False)
+            
+            if market_chart:
+                # Select the specified number of lowest values
+                data_list = list(barometer['Ticker'][-num_charts:])
+            
+            else:
+                # Select the lowest values
+                data_list = list(barometer['Ticker'][-mkts:])
+        
+        
+        # if trend flag is 'strong', select tickers of most down trending 
+        # markets
+        elif trend == 'strong':
+            
+            # Sort by Trend Strength
+            barometer = barometer.sort_values(
+                by=['Trend Strength'], ascending=False)
+            
+            if market_chart:
+                # Select the specified number of highest values
+                top = list(barometer['Ticker'][:int(num_charts/2)])
+            
+                # Select the lowest values
+                bottom = list(barometer['Ticker'][
+                    -(num_charts-int(num_charts/2)):])
+            
+            else:
+                # Select the highest values
+                top = list(barometer['Ticker'][:int(mkts/2)])
+            
+                # Select the lowest values
+                bottom = list(barometer['Ticker'][
+                    -(mkts-int(mkts/2)):])
+            
+            # Combine this data
+            data_list = top + bottom
+       
+        
+        # Otherwise select all 3
+        else: 
+            
+            # Sort by Trend Strength
+            barometer = barometer.sort_values(
+                by=['Trend Strength'], ascending=False)
+            
+            if market_chart:
+                # Select 1/3 of the specified number of highest values
+                top = list(barometer['Ticker'][:int(num_charts/3)])
+                
+                # Select 1/3 of the specified number of lowest values
+                bottom = list(barometer['Ticker'][-int(num_charts/3):])
+                
+                # Sort by Absolute Trend Strength
+                barometer = barometer.sort_values(
+                    by=['Absolute Trend Strength'], ascending=False)
+                
+                # Select 1/3 of the specified number of lowest values
+                neutral = list(barometer['Ticker'][
+                    -(num_charts-2*int(num_charts/3)):])
+            
+            else:
+                # Select the highest values
+                top = list(barometer['Ticker'][:int(mkts/3)])
+                
+                # Select the lowest values
+                bottom = list(barometer['Ticker'][-int(mkts/3):])
+                
+                # Sort by Absolute Trend Strength
+                barometer = barometer.sort_values(
+                    by=['Absolute Trend Strength'], ascending=False)
+                
+                # Select the lowest values
+                neutral = list(barometer['Ticker'][
+                    -(mkts-2*int(mkts/3)):])
+            
+            # Combine this data
+            data_list = top + bottom + neutral
+      
+        self.data_list = data_list
+      
+        return self
+                    
+        
+    def summaryplot(self, sector_level=2, absolute=True, chart_type='swarm', 
+                    ticker_types=['c', 's']):
         """
         Plot a summary of the strength of trend across markets        
 
@@ -1028,27 +1323,38 @@ class DataProcess(methods.Indicators):
                 4:'Sub-Industry', 
                 5:'Security'
 
+        absolute : Bool, optional
+            Whether to show absolute trend strength (from 0 - 100%) or show 
+            positive and negative trends seperately
+            
+        chart_type : Str, optional
+            The type of chart to display. The default is Swarmplot.
+
+        ticker_types : Str or List
+            Ticker types to use. Choose from 'c': continuous futures, 
+            'r':ratios, 's':spot cash commodities, 'i':indices, 'y':yields.
+            The default is ['c', 's']
+
         Returns
         -------
         Seaborn Swarmplot of the data.
 
         """
         
-        if self.asset_type == 'CTA':            
-            sector_name = self.commodity_sector_levels[sector_level-1]
-            marker_size = 5
-        else:
-            sector_name = self.equity_sector_levels[sector_level-1]        
-            marker_size = 4
+        # Configure sector name, marker size, trend type and drop rows from
+        # barometer DataFrame as appropriate
+        sector_name, marker_size, trend_type, \
+            chart_barometer, axis_range = self._summary_config(
+                sector_level, absolute, ticker_types)
+
+        # sns.set_style("darkgrid", {"axes.edgecolor": "black"})        
+        plt.style.use('seaborn-darkgrid')
+        plt.rcParams.update(self.mpl_summary_params)
         
-        if absolute:
-            trend_type = 'Absolute Trend Strength %'
-        else:
-            trend_type = 'Trend Strength %'
-        
-        if type == 'swarm':
-            sns.set_style("darkgrid", {"axes.edgecolor": "black"})
-            ax = sns.swarmplot(data=self.barometer, 
+        # Create Seaborn swarm plot
+        if chart_type == 'swarm':
+            fig, ax = plt.subplots(figsize=(8,6))
+            ax = sns.swarmplot(data=chart_barometer, 
                                x=trend_type, 
                                y="Trend", 
                                hue=sector_name,
@@ -1056,16 +1362,23 @@ class DataProcess(methods.Indicators):
                                s=marker_size)         
             
             ax.set(ylabel="")
+            ax.set_xlabel(trend_type, fontsize=12)
             ax.xaxis.set_major_formatter(PercentFormatter(1))
-            ax.set_title('Trend Strength by Sector', fontsize=15)
-            ax.legend(bbox_to_anchor= (1.03, 1), 
+            ax.set_xlim(axis_range)
+            ax.tick_params(axis='both', which='major', labelsize=12)
+            ax.set_title('Trend Strength by Sector', 
+                         fontsize=24,
+                         y=1.02)
+            ax.legend(bbox_to_anchor= (1.1, 1), 
                       title_fontsize=10,
                       fontsize=8,
                       title='Sector',
-                      shadow=True)
+                      shadow=True,
+                      frameon=True,
+                      facecolor='white')
 
-        if type == 'strip':
-            sns.set_style("darkgrid", {"axes.edgecolor": "black"})
+        # Create Seaborn strip plot 
+        if chart_type == 'strip':
             # Show each observation with a scatterplot
             ax = sns.stripplot(x=trend_type, 
                                y=sector_name,
@@ -1076,160 +1389,106 @@ class DataProcess(methods.Indicators):
                                palette='viridis',
                                s=4)
             
-            ax.set_title('Trend Strength by Sector', fontsize=15)
+            ax.set_title('Trend Strength by Sector', fontsize=24)
             ax.xaxis.set_major_formatter(PercentFormatter(1))
-            ax.tick_params(axis='y', which='major', labelsize=8)
+            ax.set_xlim(axis_range)
+            ax.tick_params(axis='y', which='major', labelsize=12)
+    
             
-   
-    def _tickerextract(self):
+    def _summary_config(self, sector_level, absolute, data_types):
         """
-        Extract list of S&P 500 Companies from Wikipedia.
-
-        Returns
-        -------
-        tickers : List 
-            List of stock tickers in the form of Reuters RIC codes 
-            as strings.
-        ticker_name_dict : Dict
-            Dictionary mapping ticker to long name for each ticker.
-
-        """
-        url = 'https://en.wikipedia.org/wiki/List_of_S%26P_500_companies'
-        r = requests.get(url)
-        html_doc = r.text
-        spx_list = pd.read_html(html_doc)
-        
-        # the first table on the page contains the stock data
-        spx_table = spx_list[0]
-        
-        # create a list of the tickers from the 'Symbol' column
-        self.tickers = list(spx_table['Symbol'])
-        
-        # create a dictionary mapping ticker to Security Name
-        self.ticker_name_dict = dict(zip(spx_table['Symbol'], 
-                                    spx_table['Security']))
-        
-        equity_sectors_df = pd.DataFrame.from_dict(
-            self.equity_sectors, 
-            orient='index', 
-            columns=['Sector', 
-                     'Industry Group',
-                     'Industry'])
-
-        equity_sectors_df = equity_sectors_df.reset_index()
-        equity_sectors_df = equity_sectors_df.rename(
-            columns={'index':'Sub-Industry'})        
-       
-        self.sector_mappings_df = spx_table.merge(equity_sectors_df, 
-                                                  how='left', 
-                                                  left_on='GICS Sub-Industry', 
-                                                  right_on='Sub-Industry')
-        
-        self.sector_mappings_df = self.sector_mappings_df.set_index('Symbol')
-        self.sector_mappings_df = self.sector_mappings_df[
-            ['Sector', 'Industry Group', 'Industry', 'Sub-Industry', 
-             'Security']]
-        
-        return self    
-
-
-    def _returndata(self, ticker, start_date, end_date):
-        """
-        Create DataFrame of historic prices for specified ticker.
+        Configure inputs for Trend Summary plots
 
         Parameters
         ----------
-        ticker : Int
-            Stock to be returned in the form of Reuters RIC code as a 
-            string. 
-        start_date : Str
-            Start Date represented as a string in the 
-            format 'YYYY-MM-DD'.
-        end_date : Str
-            End Date represented as a string in the 
-            format 'YYYY-MM-DD'.
-        freq : Int
-            Frequency of data - set to 'daily'.
+        sector_level : Int, optional
+            The level of granularity of the assets. 
+            For Commodities the choices are: 
+                1:'Asset Class', 
+                2:'Broad Sector', 
+                3:'Mid Sector', 
+                4:'Narrow Sector',
+                5:'Underlying'. The default is 2:'Broad Sector'.
+            For Equities the choices are:
+                1:'Sector', 
+                2:'Industry Group', 
+                3:'Industry', 
+                4:'Sub-Industry', 
+                5:'Security'
+
+        absolute : Bool, optional
+            Whether to show absolute trend strength (from 0 - 100%) or show 
+            positive and negative trends seperately
+
+        data_types : Str or List
+            Data types to use. Choose from 'c': continuous futures, 
+            'r':ratios, 's':spot cash commodities, 'i':indices, 'y':yields.
+            The default is ['c', 's']
 
         Returns
         -------
-        df : DataFrame
-            DataFrame of historic prices for given ticker.
+        sector_name : Str
+            The sector level used to summarize the data.
+        marker_size : Int
+            The size of the markers in the strip plot.
+        trend_type : Str
+            Absolute or relavive trend strength.
+        chart_barometer : DataFrame
+            Data source used to produce charts.
 
         """
-        yahoo_financials = YahooFinancials(ticker)
-        freq='daily'
-        
-        # Extract historic prices
-        df = yahoo_financials.get_historical_price_data(
-            start_date, end_date, freq)
-        
-        # Reformat columns
-        df = pd.DataFrame(df[ticker]['prices']).drop(['date'], axis=1) \
-                .rename(columns={'formatted_date':'Date',
-                                 'open': 'Open',
-                                 'high': 'High',
-                                 'low': 'Low',
-                                 'close': 'Close',
-                                 'volume': 'Volume'}) \
-                .loc[:, ['Date','Open','High','Low','Close','Volume']] \
-                .set_index('Date')
-        
-        # Set Index to Datetime
-        df.index = pd.to_datetime(df.index)
-        
-        return df
+        # Set sector names and marker size when using Norgate futures data
+        if self.asset_type == 'CTA':            
+            sector_name = self.commodity_sector_levels[sector_level-1]
+            marker_size = 5
+            
+            # 'all' is used to select all of the Norgate data types
+            if data_types == 'all':
+                chart_barometer = self.barometer
+                
+            # If the type is a string, remove all the other types    
+            elif type(data_types) == str:
+                chart_barometer = copy.deepcopy(self.barometer)
+                for tick in list(self.ticker_types.values()):
+                    if tick[0] != data_types:
+                        chart_barometer.drop(
+                            index=chart_barometer[
+                                chart_barometer['Ticker'].str.contains(
+                                    tick)].index, inplace=True)
 
-
-    def date_set(self, start_date, end_date, lookback):
-        if end_date is None:
-            end_date_as_dt = (dt.datetime.today() - BDay(1)).date()
-            end_date = str(end_date_as_dt)
-        self.end_date = end_date    
+            # If the result is a list, remove all the types not in the list
+            elif type(data_types) == list:
+                chart_barometer = copy.deepcopy(self.barometer)
+                for tick in list(self.ticker_types.values()):
+                    if tick[0] not in data_types:
+                        chart_barometer.drop(
+                            index=chart_barometer[
+                                chart_barometer['Ticker'].str.contains(
+                                    tick)].index, inplace=True)
+            
+            # Print an error message if an incorrect type is supplied            
+            else:
+                print('Enter a valid ticker type')
+           
+        # Otherwise for Yahoo SPX data    
+        else:
+            sector_name = self.equity_sector_levels[sector_level-1]        
+            marker_size = 3.5
+            chart_barometer = self.barometer
         
-        if start_date is None:
-            start_date_as_dt = (dt.datetime.today() - 
-                                pd.Timedelta(days=lookback*(365/250))).date()
-            start_date = str(start_date_as_dt)
-        self.start_date = start_date
-
-        return self
-
-
-    def generate_fields(self, ma_list=None, macd_params=None, adx_list=None, 
-                        ma_cross_list=None, price_cross_list=None, 
-                        rsi_list=None, atr_list=None):
-        
-        (ma_list, macd_params, adx_list, ma_cross_list, price_cross_list, 
-         rsi_list, atr_list) = itemgetter(
-             'ma_list', 'macd_params', 'adx_list', 'ma_cross_list', 
-             'price_cross_list', 'rsi_list', 
-             'atr_list')(self._refresh_params_default(
-                 ma_list=ma_list, macd_params=macd_params, adx_list=adx_list, 
-                 ma_cross_list=ma_cross_list, 
-                 price_cross_list=price_cross_list, rsi_list=rsi_list, 
-                 atr_list=atr_list))
-                 
-        # Add trend fields to each of the DataFrames in ticker_dict
-        self._fields(
-            ma_list=ma_list, macd_params=macd_params, adx_list=adx_list, 
-            ma_cross_list=ma_cross_list, price_cross_list=price_cross_list, 
-            rsi_list=rsi_list, atr_list=atr_list)
-    
-        return self
+        # Set label for Absolute trend strength ranging from 0% to 100%
+        if absolute:
+            trend_type = 'Absolute Trend Strength %'
+            axis_range = [-0.1,1]
+        # Or splitting uptrends and downtrends ranging from -100% to 100%    
+        else:
+            trend_type = 'Trend Strength %'
+            axis_range = [-1,1]
+            
+        return sector_name, marker_size, trend_type, chart_barometer, \
+            axis_range
     
     
-    def generate_trend_strength(self, trend_flags=None):     
-        
-        (trend_flags) = itemgetter(
-            'trend_flags')(self._refresh_params_default(
-                 trend_flags=trend_flags))
-        
-        # Create trend strength data
-        self._trendstrength(trend_flags=trend_flags)
-        
-        return self
-
 
 
 class DataSetNorgate(DataProcess):
@@ -1253,24 +1512,28 @@ class DataSetNorgate(DataProcess):
 
         """
         
+        # Set the asset type to 'CTA'
         self.asset_type = 'CTA'
         
+        # If a list of tickers are not supplied, run the function to collect 
+        # available tickers 
         if tickers is None:
             tickers = self._get_norgate_tickers()
-            
+        
+        # Set values for the number of tickers to return and the number of days 
+        # to look back over, either to those supplied or to the default values    
         (ticker_limit, lookback) = itemgetter(
             'ticker_limit', 'lookback')(
                 self._refresh_params_default(
                     ticker_limit=ticker_limit, lookback=lookback))  
-
-        self.date_set(start_date, end_date, lookback)        
+        
+        # Set the start and end dates        
+        self._date_set(start_date, end_date, lookback)        
                 
         # Create dictionaries of DataFrames of prices and ticker names
         self._importnorgate(tickers=tickers, start_date=self.start_date,
                             end_date=self.end_date, ticker_limit=ticker_limit)
-        
-        self._commodity_sector_mappings()
-       
+    
         return self
     
     
@@ -1290,7 +1553,7 @@ class DataSetNorgate(DataProcess):
         databasecontents = norgatedata.database(databasename)
         
         # Create empty dictionary to store tickers
-        ticker_dict = {}
+        init_ticker_dict = {}
         
         # For each dictionary in the data extract
         for dicto in databasecontents:
@@ -1298,7 +1561,8 @@ class DataSetNorgate(DataProcess):
             # key-value pair
             key = dicto['symbol']
             value = dicto['securityname']
-            ticker_dict[key] = value
+            if 'Stocks' not in value:
+                init_ticker_dict[key] = value
         
         # Specify Norgate Continuous Futures database and extract data            
         databasename = 'Continuous Futures'
@@ -1312,10 +1576,12 @@ class DataSetNorgate(DataProcess):
             value = dicto['securityname']
             # Only take the back-adjusted tickers
             if '_CCB' in key:
-                ticker_dict[key] = value
+                init_ticker_dict[key] = value
+        
+        self.init_ticker_dict = init_ticker_dict
         
         # Convert the ticker dict keys into a list
-        tickers = list(ticker_dict.keys())
+        tickers = list(init_ticker_dict.keys())
     
         return tickers
     
@@ -1347,9 +1613,9 @@ class DataSetNorgate(DataProcess):
         # Loop through list of tickers
         for ticker in tickers[:ticker_limit]:
             
-            # Append 'c_' to each ticker to avoid labels starting with 
-            # a number and create lowercase value
-            tick = "c_"+ticker[1:]
+            # Append character to each ticker to represent its type and create 
+            # lowercase value
+            tick = self.ticker_types[ticker[0]]+ticker[1:]
             lowtick = tick.lower()
             
             # Set data format and extract each DataFrame, storing as 
@@ -1379,9 +1645,50 @@ class DataSetNorgate(DataProcess):
 
             except:
                 self.ticker_short_name_dict[lowtick] = ticker_name
+
+        # Create sector mappings DataFrame
+        self._commodity_sector_mappings()
             
         return self
 
+
+    def _commodity_sector_mappings(self):
+        """
+        Create sector mappings DataFrame
+
+        Returns
+        -------
+        DataFrame
+            Sector mappings DataFrame stored in the object.
+
+        """
+        # Create empty dictionary
+        sectors = {}
+        
+        # For each key-value pair in the default sector mappings dictionary
+        for key, value in self.sector_mappings.items():
+            
+            # If the first character in the key is in the list of keys from the 
+            # ticker types dictionary
+            if key[0] in list(self.ticker_types.keys()):
+                
+                # Create a new key equal to the lower case original key with 
+                # the first character replaced by the value in the ticker types 
+                # dictionary 
+                new_key = key.lower().replace(key[0], 
+                                              self.ticker_types[key[0]])
+                
+                # create an entry in the sectors dictionary
+                sectors[new_key] = value
+        
+        # Create a sector mappings DataFrame from the sectors dictionary using 
+        # the default commodity sector levels list as the column headers
+        self.sector_mappings_df = pd.DataFrame.from_dict(
+            sectors, 
+            orient='index', 
+            columns=self.commodity_sector_levels)
+        
+        return self
 
 
 class DataSetYahoo(DataProcess):
@@ -1397,6 +1704,67 @@ class DataSetYahoo(DataProcess):
         
         # Set short_name_dict = name_dict
         self.ticker_short_name_dict = self.ticker_name_dict
+
+
+    def _tickerextract(self):
+        """
+        Extract list of S&P 500 Companies from Wikipedia.
+
+        Returns
+        -------
+        tickers : List 
+            List of stock tickers in the form of Reuters RIC codes 
+            as strings.
+        ticker_name_dict : Dict
+            Dictionary mapping ticker to long name for each ticker.
+
+        """
+        
+        # Extract data from the Wikipedia SPX page
+        url = 'https://en.wikipedia.org/wiki/List_of_S%26P_500_companies'
+        r = requests.get(url)
+        html_doc = r.text
+        spx_list = pd.read_html(html_doc)
+        
+        # the first table on the page contains the stock data
+        spx_table = spx_list[0]
+        
+        # create a list of the tickers from the 'Symbol' column
+        self.tickers = list(spx_table['Symbol'])
+        
+        # create a dictionary mapping ticker to Security Name
+        self.ticker_name_dict = dict(zip(spx_table['Symbol'], 
+                                    spx_table['Security']))
+        
+        # Create a DataFrame from the default equity sectors dictionary 
+        equity_sectors_df = pd.DataFrame.from_dict(
+            self.equity_sectors, 
+            orient='index', 
+            columns=['Sector', 
+                     'Industry Group',
+                     'Industry'])
+        
+        # Reset the index and rename as Sub-Industry column
+        equity_sectors_df = equity_sectors_df.reset_index()
+        equity_sectors_df = equity_sectors_df.rename(
+            columns={'index':'Sub-Industry'})        
+       
+        # Create a sector mappings DataFrame by joining the SPX table from 
+        # Wikipedia to the Equity Sectors DataFrame 
+        self.sector_mappings_df = spx_table.merge(equity_sectors_df, 
+                                                  how='left', 
+                                                  left_on='GICS Sub-Industry', 
+                                                  right_on='Sub-Industry')
+        
+        # Set the Index to the Ticker symbol
+        self.sector_mappings_df = self.sector_mappings_df.set_index('Symbol')
+        
+        # Keep only the columns related to the sector levels 
+        self.sector_mappings_df = self.sector_mappings_df[
+            ['Sector', 'Industry Group', 'Industry', 'Sub-Industry', 
+             'Security']]
+        
+        return self    
 
 
     def prepyahoo(self, tickers=None, start_date=None, end_date=None, 
@@ -1424,16 +1792,23 @@ class DataSetYahoo(DataProcess):
             Dictionary of DataFrames.
 
         """
+        
+        # Set the asset type to 'Equity'
         self.asset_type = 'Equity'
         
+        # If a list of tickers are not supplied, take those created in the 
+        # initialization process
         if tickers is None:
             tickers = self.tickers
         
+        # Set values for the number of tickers to return and the number of days 
+        # to look back over, either to those supplied or to the default values  
         (ticker_limit, lookback) = itemgetter(
             'ticker_limit', 'lookback')(self._refresh_params_default(
                  ticker_limit=ticker_limit, lookback=lookback))
 
-        self.date_set(start_date, end_date, lookback)        
+        # Set the start and end dates            
+        self._date_set(start_date, end_date, lookback)        
                 
         # Create dictionaries of DataFrames of prices and ticker names
         self._importyahoo(tickers=tickers, start_date=self.start_date, 
@@ -1500,4 +1875,55 @@ class DataSetYahoo(DataProcess):
         return self
     
     
+    def _returndata(self, ticker, start_date, end_date):
+        """
+        Create DataFrame of historic prices for specified ticker.
+
+        Parameters
+        ----------
+        ticker : Int
+            Stock to be returned in the form of Reuters RIC code as a 
+            string. 
+        start_date : Str
+            Start Date represented as a string in the 
+            format 'YYYY-MM-DD'.
+        end_date : Str
+            End Date represented as a string in the 
+            format 'YYYY-MM-DD'.
+        freq : Int
+            Frequency of data - set to 'daily'.
+
+        Returns
+        -------
+        df : DataFrame
+            DataFrame of historic prices for given ticker.
+
+        """
+        
+        # Initialize a YahooFinancials object with the supplied ticker 
+        yahoo_financials = YahooFinancials(ticker)
+        
+        # Set frequency to daily
+        freq='daily'
+        
+        # Extract historic prices
+        df = yahoo_financials.get_historical_price_data(
+            start_date, end_date, freq)
+        
+        # Reformat columns
+        df = pd.DataFrame(df[ticker]['prices']).drop(['date'], axis=1) \
+                .rename(columns={'formatted_date':'Date',
+                                 'open': 'Open',
+                                 'high': 'High',
+                                 'low': 'Low',
+                                 'close': 'Close',
+                                 'volume': 'Volume'}) \
+                .loc[:, ['Date','Open','High','Low','Close','Volume']] \
+                .set_index('Date')
+        
+        # Set Index to Datetime
+        df.index = pd.to_datetime(df.index)
+        
+        return df
+
     
