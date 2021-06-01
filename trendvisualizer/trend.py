@@ -1001,8 +1001,9 @@ class DataProcess(methods.Indicators):
         st.set_y(0.95)
         fig.subplots_adjust(top=0.9)
 
-
-    def _mkt_dims(self, mkts):
+    
+    @staticmethod
+    def _mkt_dims(mkts):
         """
         Create a tuple giving the height and width of the market chart
 
