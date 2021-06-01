@@ -3,6 +3,7 @@ numpy >= 1.16.2
 requests >= 2.24.0
 pandas >= 1.0.0
 matplotlib >= 3.0.3
+seaborn >= 0.11.1
 norgatedata >= 1.0.48
 yahoofinancials >= 1.5
 technicalmethods >= 0.1.0
