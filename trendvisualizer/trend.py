@@ -538,7 +538,7 @@ class DataProcess(methods.Indicators):
         plt.style.use('seaborn-darkgrid')
         plt.rcParams.update(self.mpl_bar_params)
         num_markets = min(mkts, 20)
-        fig, ax = plt.subplots(figsize=(8,num_markets))
+        fig, ax = plt.subplots(figsize=(8,int(num_markets/2)))
         plt.tight_layout()
        
         # Set the xticks to be integer values
@@ -636,7 +636,7 @@ class DataProcess(methods.Indicators):
                      fontweight=0, 
                      color='black', 
                      style='italic', 
-                     y=1.02)        
+                     y=1.04)        
                 
         plt.show()
         
