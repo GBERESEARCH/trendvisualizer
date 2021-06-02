@@ -10,6 +10,7 @@ import requests
 import technicalmethods.methods as methods
 import trend_params as tp
 import seaborn as sns
+import warnings
 from matplotlib.ticker import MaxNLocator, AutoMinorLocator, PercentFormatter
 from matplotlib.dates import MO, WeekdayLocator, MonthLocator
 from operator import itemgetter
@@ -532,16 +533,17 @@ class DataProcess(methods.Indicators):
 
         # Take a copy of the barometer table        
         barometer = copy.deepcopy(self.barometer)
-        
+
         # Initialize the figure
         plt.style.use('seaborn-darkgrid')
         plt.rcParams.update(self.mpl_bar_params)
-        fig, ax = plt.subplots(figsize=(8,8))
+        num_markets = min(mkts, 20)
+        fig, ax = plt.subplots(figsize=(8,num_markets))
         plt.tight_layout()
        
         # Set the xticks to be integer values
-        ax.xaxis.set_major_locator(MaxNLocator())#integer=True))
-        
+        ax.xaxis.set_major_locator(MaxNLocator(6))#integer=True))
+                
         # Set the x axis to be in percentages
         ax.xaxis.set_major_formatter(PercentFormatter(1))
         
@@ -549,10 +551,11 @@ class DataProcess(methods.Indicators):
         ax.yaxis.set_tick_params(pad=15)
 
         # Set axis tick label size
-        ax.tick_params(axis='y', which='major', labelsize=int(0.6*(50-mkts)))
-        ax.tick_params(axis='y', which='minor', labelsize=int(0.6*(50-mkts)))
-        ax.tick_params(axis='x', which='major', labelsize=14)
-        ax.tick_params(axis='x', which='minor', labelsize=14)
+        font_scaler = min(int(0.6*(50-mkts)), 18)
+        ax.tick_params(axis='both', which='both', labelsize=font_scaler)
+        #ax.tick_params(axis='y', which='minor', labelsize=tick_scaler)
+        #ax.tick_params(axis='x', which='major', labelsize=tick_scaler)
+        #ax.tick_params(axis='x', which='minor', labelsize=tick_scaler)
                 
         # Set the yticks to be horizontal
         plt.yticks(rotation=0)
@@ -625,15 +628,15 @@ class DataProcess(methods.Indicators):
         
         
         # Label xaxis
-        plt.xlabel("Trend Strength", fontsize=20, labelpad=10) 
+        plt.xlabel("Trend Strength", fontsize=font_scaler*1.2, labelpad=10) 
         
         # Set title
         plt.suptitle(titlestr+' Trending Markets', 
-                     fontsize=28, 
+                     fontsize=24, 
                      fontweight=0, 
                      color='black', 
                      style='italic', 
-                     y=1.05)        
+                     y=1.02)        
                 
         plt.show()
         
@@ -841,7 +844,7 @@ class DataProcess(methods.Indicators):
         palette = plt.get_cmap('tab20')
         
         # Initialize the figure
-        fig, ax = plt.subplots(figsize=(16,16))
+        fig, ax = plt.subplots(figsize=(int(chart_dimensions[1]*3),int(chart_dimensions[0]*2)))
         fig.subplots_adjust(top=0.85)
         fig.tight_layout()
                
@@ -991,16 +994,13 @@ class DataProcess(methods.Indicators):
                               +str(days)+' Trading Days')            
        
         # general title
-        st = fig.suptitle(charttitle, 
-                          fontsize=25, 
-                          fontweight=0, 
-                          color='black', 
-                          style='italic', 
-                          y=1.02)
-        
-        st.set_y(0.95)
-        fig.subplots_adjust(top=0.9)
-
+        fig.suptitle(charttitle, 
+                     fontsize=20, 
+                     fontweight=0, 
+                     color='black', 
+                     style='italic', 
+                     y=1.05)
+       
     
     @staticmethod
     def _mkt_dims(mkts):
@@ -1303,7 +1303,7 @@ class DataProcess(methods.Indicators):
                     
         
     def summaryplot(self, sector_level=2, absolute=True, chart_type='swarm', 
-                    ticker_types=['c', 's']):
+                    ticker_types=['c', 's'], dodge=False):
         """
         Plot a summary of the strength of trend across markets        
 
@@ -1341,6 +1341,8 @@ class DataProcess(methods.Indicators):
         Seaborn Swarmplot of the data.
 
         """
+        # Suppress userwarning warnings caused by overlapping data
+        warnings.filterwarnings("ignore", category=UserWarning)
         
         # Configure sector name, marker size, trend type and drop rows from
         # barometer DataFrame as appropriate
@@ -1352,24 +1354,28 @@ class DataProcess(methods.Indicators):
         plt.style.use('seaborn-darkgrid')
         plt.rcParams.update(self.mpl_summary_params)
         
+        #num_markets = len(chart_barometer)
+        num_sectors = min(len(chart_barometer[sector_name].unique()), 20)
+        
         # Create Seaborn swarm plot
         if chart_type == 'swarm':
-            fig, ax = plt.subplots(figsize=(8,6))
+            fig, ax = plt.subplots(figsize=(8,num_sectors))
             ax = sns.swarmplot(data=chart_barometer, 
                                x=trend_type, 
                                y="Trend", 
                                hue=sector_name,
+                               dodge=dodge,
                                palette='cubehelix',
-                               s=marker_size)         
+                               marker='^',
+                               s=8#marker_size
+                               )         
             
             ax.set(ylabel="")
             ax.set_xlabel(trend_type, fontsize=12)
             ax.xaxis.set_major_formatter(PercentFormatter(1))
             ax.set_xlim(axis_range)
             ax.tick_params(axis='both', which='major', labelsize=12)
-            ax.set_title('Trend Strength by Sector', 
-                         fontsize=24,
-                         y=1.02)
+            ax.set_title('Trend Strength by Sector', fontsize=18, y=1.02)
             ax.legend(bbox_to_anchor= (1.1, 1), 
                       title_fontsize=10,
                       fontsize=8,
@@ -1380,20 +1386,27 @@ class DataProcess(methods.Indicators):
 
         # Create Seaborn strip plot 
         if chart_type == 'strip':
-            # Show each observation with a scatterplot
+            fig, ax = plt.subplots(figsize=(8,num_sectors))
             ax = sns.stripplot(x=trend_type, 
                                y=sector_name,
                                data=self.barometer, 
                                dodge=True, 
                                alpha=1, 
                                zorder=1,
+                               marker='^',
                                palette='viridis',
-                               s=4)
+                               s=8)
             
-            ax.set_title('Trend Strength by Sector', fontsize=24)
+            ax.set_title('Trend Strength by Sector', fontsize=18)
             ax.xaxis.set_major_formatter(PercentFormatter(1))
             ax.set_xlim(axis_range)
-            ax.tick_params(axis='y', which='major', labelsize=12)
+            ax.tick_params(axis='both', which='major', labelsize=12)
+            ax.tick_params(axis='both', which='minor', labelsize=12)
+            ax.set(ylabel="")
+            ax.set_xlabel(trend_type, fontsize=12)
+    
+        # Return warnings to default setting
+        warnings.filterwarnings("default", category=UserWarning)    
     
             
     def _summary_config(self, sector_level, absolute, data_types):
