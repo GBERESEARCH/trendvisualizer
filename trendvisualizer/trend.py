@@ -7,7 +7,7 @@ import norgatedata
 import numpy as np
 import pandas as pd
 import requests
-import technicalmethods.methods as methods
+from technicalmethods.methods import Indicators
 import trend_params as tp
 import seaborn as sns
 import warnings
@@ -18,15 +18,12 @@ from pandas.tseries.offsets import BDay
 from yahoofinancials import YahooFinancials
 
 
-class DataProcess(methods.Indicators):
+class DataProcess():
     """
     Container for various data processing operations
     """
     def __init__(self, *args, **kwargs):
-        
-        # Inherit methods from methods.Indicators
-        methods.Indicators.__init__(self)
-        
+                
         # Import dictionary of default parameters 
         self.df_dict = tp.trend_params_dict
         
@@ -241,18 +238,12 @@ class DataProcess(methods.Indicators):
             
             # Create MACD, Signal and Hist using default parameters 
             # of 12, 26, 9
-            df['MACD'], df['MACD_SIGNAL'], df['MACD_HIST'] = self.MACD(
+            df['MACD'], df['MACD_SIGNAL'], df['MACD_HIST'] = Indicators.MACD(
                 close=df['Close'], 
                 fast=macd_params[0], 
                 slow=macd_params[1], 
                 signal=macd_params[2])
             
-            
-            #df['MACD'], df['MACD_SIGNAL'], df['MACD_HIST'] = talib.MACD(
-            #    df['Close'], 
-            #    fastperiod=macd_params[0], 
-            #    slowperiod=macd_params[1], 
-            #    signalperiod=macd_params[2])
             
             # Create flag for MACD histogram increasing 
             df['MACD_flag'] = np.where(df['MACD_HIST'].diff() > 0, 1, -1)
@@ -262,7 +253,7 @@ class DataProcess(methods.Indicators):
             # Create flags for ADX over 25
             for tenor in adx_list:
                 try:
-                    df['ADX_'+str(tenor)] = self.ADX(
+                    df['ADX_'+str(tenor)] = Indicators.ADX(
                         high=df['High'], low=df['Low'], close=df['Close'], 
                         time_period=tenor)
                     df['ADX_'+str(tenor)+'_flag'] = np.where(
@@ -284,7 +275,7 @@ class DataProcess(methods.Indicators):
             # Create flag for RSI over 70 or under 30
             for tenor in rsi_list:
                 try:
-                    df['RSI_'+str(tenor)] = self.RSI(
+                    df['RSI_'+str(tenor)] = Indicators.RSI(
                         close=df['Close'], time_period=tenor)
                     df['RSI_'+str(tenor)+'_flag'] = np.where(
                         df['RSI_'+str(tenor)] > 70, 1, np.where(
@@ -296,7 +287,7 @@ class DataProcess(methods.Indicators):
             # Create Average True Range with 14 day timeframe
             for tenor in atr_list:
                 try:
-                    df['ATR_'+str(tenor)] = self.ATR(
+                    df['ATR_'+str(tenor)] = Indicators.ATR(
                         high=df['High'], low=df['Low'], close=df['Close'], 
                         time_period=tenor)
                 except:
@@ -553,9 +544,6 @@ class DataProcess(methods.Indicators):
         # Set axis tick label size
         font_scaler = min(int(0.6*(50-mkts)), 18)
         ax.tick_params(axis='both', which='both', labelsize=font_scaler)
-        #ax.tick_params(axis='y', which='minor', labelsize=tick_scaler)
-        #ax.tick_params(axis='x', which='major', labelsize=tick_scaler)
-        #ax.tick_params(axis='x', which='minor', labelsize=tick_scaler)
                 
         # Set the yticks to be horizontal
         plt.yticks(rotation=0)
@@ -1347,27 +1335,26 @@ class DataProcess(methods.Indicators):
         # Configure sector name, marker size, trend type and drop rows from
         # barometer DataFrame as appropriate
         sector_name, marker_size, trend_type, \
-            chart_barometer, axis_range = self._summary_config(
+            chart_barometer, axis_range, plot_height, \
+            sector_list = self._summary_config(
                 sector_level, absolute, ticker_types)
 
         # sns.set_style("darkgrid", {"axes.edgecolor": "black"})        
         plt.style.use('seaborn-darkgrid')
         plt.rcParams.update(self.mpl_summary_params)
-        
-        #num_markets = len(chart_barometer)
-        num_sectors = min(len(chart_barometer[sector_name].unique()), 20)
-        
+                
         # Create Seaborn swarm plot
         if chart_type == 'swarm':
-            fig, ax = plt.subplots(figsize=(8,num_sectors))
+            fig, ax = plt.subplots(figsize=(8, plot_height))
             ax = sns.swarmplot(data=chart_barometer, 
                                x=trend_type, 
                                y="Trend", 
                                hue=sector_name,
+                               hue_order=sector_list,
                                dodge=dodge,
                                palette='cubehelix',
                                marker='^',
-                               s=8#marker_size
+                               s=marker_size
                                )         
             
             ax.set(ylabel="")
@@ -1386,18 +1373,18 @@ class DataProcess(methods.Indicators):
 
         # Create Seaborn strip plot 
         if chart_type == 'strip':
-            fig, ax = plt.subplots(figsize=(8,num_sectors))
+            fig, ax = plt.subplots(figsize=(8,plot_height))
             ax = sns.stripplot(x=trend_type, 
                                y=sector_name,
                                data=self.barometer, 
                                dodge=True, 
                                alpha=1, 
-                               zorder=1,
+                               order=sector_list,
                                marker='^',
                                palette='viridis',
-                               s=8)
+                               s=marker_size)
             
-            ax.set_title('Trend Strength by Sector', fontsize=18)
+            ax.set_title('Trend Strength by Sector', fontsize=18, y=1)
             ax.xaxis.set_major_formatter(PercentFormatter(1))
             ax.set_xlim(axis_range)
             ax.tick_params(axis='both', which='major', labelsize=12)
@@ -1454,8 +1441,8 @@ class DataProcess(methods.Indicators):
         # Set sector names and marker size when using Norgate futures data
         if self.asset_type == 'CTA':            
             sector_name = self.commodity_sector_levels[sector_level-1]
-            marker_size = 5
-            
+            marker_size = 10
+           
             # 'all' is used to select all of the Norgate data types
             if data_types == 'all':
                 chart_barometer = self.barometer
@@ -1483,13 +1470,23 @@ class DataProcess(methods.Indicators):
             # Print an error message if an incorrect type is supplied            
             else:
                 print('Enter a valid ticker type')
-           
+
+            # Set the maximum height of the chart
+            plot_height = max(min(
+                len(chart_barometer[sector_name].unique())/2, 40), 
+                len(chart_barometer[sector_name].unique()))
+                       
         # Otherwise for Yahoo SPX data    
         else:
             sector_name = self.equity_sector_levels[sector_level-1]        
-            marker_size = 3.5
+            marker_size = 8
             chart_barometer = self.barometer
-        
+            
+            # Set the maximum height of the chart
+            plot_height = max(min(
+                len(chart_barometer[sector_name].unique())/2, 100), 
+                len(chart_barometer[sector_name].unique())) 
+                    
         # Set label for Absolute trend strength ranging from 0% to 100%
         if absolute:
             trend_type = 'Absolute Trend Strength %'
@@ -1498,11 +1495,20 @@ class DataProcess(methods.Indicators):
         else:
             trend_type = 'Trend Strength %'
             axis_range = [-1,1]
-            
+
+        # Rank the sector split by average  of the trend_type        
+        sect_data = chart_barometer[[trend_type, sector_name]].groupby(
+            [sector_name]).mean()
+        sector_list = list(sect_data.sort_values(
+            trend_type, ascending=False).index)
+        
+        # Sort chart barometer by trend type
+        chart_barometer = chart_barometer.sort_values(
+            by=[trend_type], ascending=True)    
+        
         return sector_name, marker_size, trend_type, chart_barometer, \
-            axis_range
-    
-    
+            axis_range, plot_height, sector_list
+        
 
 
 class DataSetNorgate(DataProcess):
