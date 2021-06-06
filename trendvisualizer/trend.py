@@ -87,7 +87,7 @@ class DataProcess():
         return kwargs    
 
 
-    def _date_set(self, start_date, end_date, lookback):
+    def _date_set(self, start_date=None, end_date=None, lookback=None):
         """
         Create start and end dates if not supplied
 
@@ -1291,7 +1291,8 @@ class DataProcess():
                     
         
     def summaryplot(self, sector_level=2, absolute=True, chart_type='swarm', 
-                    ticker_types=['c', 's'], dodge=False):
+                    ticker_types=['c', 's'], dodge=False, compact=False, 
+                    marker='^', violin=False):
         """
         Plot a summary of the strength of trend across markets        
 
@@ -1337,12 +1338,15 @@ class DataProcess():
         sector_name, marker_size, trend_type, \
             chart_barometer, axis_range, plot_height, \
             sector_list = self._summary_config(
-                sector_level, absolute, ticker_types)
+                sector_level, absolute, ticker_types, chart_type, dodge)
 
         # sns.set_style("darkgrid", {"axes.edgecolor": "black"})        
         plt.style.use('seaborn-darkgrid')
         plt.rcParams.update(self.mpl_summary_params)
                 
+        if compact:
+            plot_height = plot_height / 4
+        
         # Create Seaborn swarm plot
         if chart_type == 'swarm':
             fig, ax = plt.subplots(figsize=(8, plot_height))
@@ -1353,7 +1357,7 @@ class DataProcess():
                                hue_order=sector_list,
                                dodge=dodge,
                                palette='cubehelix',
-                               marker='^',
+                               marker=marker,
                                s=marker_size
                                )         
             
@@ -1362,7 +1366,7 @@ class DataProcess():
             ax.xaxis.set_major_formatter(PercentFormatter(1))
             ax.set_xlim(axis_range)
             ax.tick_params(axis='both', which='major', labelsize=12)
-            ax.set_title('Trend Strength by Sector', fontsize=18, y=1.02)
+            ax.set_title('Trend Strength by Sector', fontsize=18, y=1)
             ax.legend(bbox_to_anchor= (1.1, 1), 
                       title_fontsize=10,
                       fontsize=8,
@@ -1374,13 +1378,22 @@ class DataProcess():
         # Create Seaborn strip plot 
         if chart_type == 'strip':
             fig, ax = plt.subplots(figsize=(8,plot_height))
+            if violin:
+                ax = sns.violinplot(x=trend_type, 
+                                    y=sector_name,
+                                    data=self.barometer,
+                                    inner='quartile', 
+                                    #color=".8",
+                                    linewidth=1, 
+                                    palette="coolwarm",
+                                    scale='count')
             ax = sns.stripplot(x=trend_type, 
                                y=sector_name,
                                data=self.barometer, 
                                dodge=True, 
                                alpha=1, 
                                order=sector_list,
-                               marker='^',
+                               marker=marker,
                                palette='viridis',
                                s=marker_size)
             
@@ -1396,7 +1409,8 @@ class DataProcess():
         warnings.filterwarnings("default", category=UserWarning)    
     
             
-    def _summary_config(self, sector_level, absolute, data_types):
+    def _summary_config(self, sector_level, absolute, data_types, chart_type, 
+                        dodge):
         """
         Configure inputs for Trend Summary plots
 
@@ -1472,21 +1486,21 @@ class DataProcess():
                 print('Enter a valid ticker type')
 
             # Set the maximum height of the chart
-            plot_height = max(min(
-                len(chart_barometer[sector_name].unique())/2, 40), 
-                len(chart_barometer[sector_name].unique()))
+            #plot_height = max(min(
+            #    len(chart_barometer[sector_name].unique())/2, 40), 
+            #    len(chart_barometer[sector_name].unique()))
                        
         # Otherwise for Yahoo SPX data    
         else:
             sector_name = self.equity_sector_levels[sector_level-1]        
-            marker_size = 8
+            marker_size = 10
             chart_barometer = self.barometer
             
             # Set the maximum height of the chart
-            plot_height = max(min(
-                len(chart_barometer[sector_name].unique())/2, 100), 
-                len(chart_barometer[sector_name].unique())) 
-                    
+            #plot_height = max(min(
+            #    len(chart_barometer[sector_name].unique())/2, 100), 
+            #    len(chart_barometer[sector_name].unique())) 
+                            
         # Set label for Absolute trend strength ranging from 0% to 100%
         if absolute:
             trend_type = 'Absolute Trend Strength %'
@@ -1495,10 +1509,29 @@ class DataProcess():
         else:
             trend_type = 'Trend Strength %'
             axis_range = [-1,1]
-
+            
+        max_bucket = chart_barometer[trend_type].value_counts().max()
+        
+        trend_sector_group = chart_barometer[[trend_type, sector_name]]
+        
+        max_bucket_per_sector = trend_sector_group.groupby(
+            trend_sector_group.columns.tolist()).size().max()
+        
+        num_sectors = len(chart_barometer[sector_name].unique())
+        
+        # Set the maximum height of the chart
+        if chart_type == 'strip':    
+            plot_height = max_bucket_per_sector * num_sectors / 6     
+        else:
+            if dodge:
+                #plot_height = max((max_bucket / 2), 
+                #                  len(chart_barometer[sector_name].unique())/3)
+                plot_height = max_bucket_per_sector * num_sectors / 8
+            else:
+                plot_height = max_bucket / 4
+            
         # Rank the sector split by average  of the trend_type        
-        sect_data = chart_barometer[[trend_type, sector_name]].groupby(
-            [sector_name]).mean()
+        sect_data = trend_sector_group.groupby([sector_name]).mean()
         sector_list = list(sect_data.sort_values(
             trend_type, ascending=False).index)
         
@@ -1548,7 +1581,8 @@ class DataSetNorgate(DataProcess):
                     ticker_limit=ticker_limit, lookback=lookback))  
         
         # Set the start and end dates        
-        self._date_set(start_date, end_date, lookback)        
+        self._date_set(start_date=start_date, end_date=end_date, 
+                       lookback=lookback)        
                 
         # Create dictionaries of DataFrames of prices and ticker names
         self._importnorgate(tickers=tickers, start_date=self.start_date,
@@ -1724,6 +1758,9 @@ class DataSetYahoo(DataProcess):
         
         # Set short_name_dict = name_dict
         self.ticker_short_name_dict = self.ticker_name_dict
+        
+        # Set empty time window
+        self.window = self.df_dict['df_window']
 
 
     def _tickerextract(self):
@@ -1834,6 +1871,8 @@ class DataSetYahoo(DataProcess):
         self._importyahoo(tickers=tickers, start_date=self.start_date, 
                           end_date=self.end_date, ticker_limit=ticker_limit)
     
+        #self._ticker_clean()
+    
         return self
    
 
@@ -1895,6 +1934,18 @@ class DataSetYahoo(DataProcess):
         return self
     
     
+    def _ticker_clean(self):
+        drop_list = []
+        for ticker, df in self.raw_ticker_dict.items():
+            if len(df) < self.window:
+                drop_list.append(ticker) 
+        
+        for ticker in drop_list:
+            del self.raw_ticker_dict[ticker]
+        
+        return self        
+    
+    
     def _returndata(self, ticker, start_date, end_date):
         """
         Create DataFrame of historic prices for specified ticker.
@@ -1943,6 +1994,10 @@ class DataSetYahoo(DataProcess):
         
         # Set Index to Datetime
         df.index = pd.to_datetime(df.index)
+        
+        if self.window is None:
+            if (pd.to_datetime(start_date) - df.index[0]).days < 5:
+                self.window = len(df)
         
         return df
 

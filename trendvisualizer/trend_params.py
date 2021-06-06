@@ -145,6 +145,7 @@ trend_params_dict = {
          },
      
      'df_lookback':500,
+     'df_window':None,
      'df_ticker_limit':None,
      'df_mkts':10,
      'df_trend':'strong',
