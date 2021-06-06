@@ -1505,6 +1505,7 @@ class DataProcess():
         if absolute:
             trend_type = 'Absolute Trend Strength %'
             axis_range = [-0.1,1]
+        
         # Or splitting uptrends and downtrends ranging from -100% to 100%    
         else:
             trend_type = 'Trend Strength %'
@@ -1611,6 +1612,7 @@ class DataSetNorgate(DataProcess):
         
         # For each dictionary in the data extract
         for dicto in databasecontents:
+            
             # Add the symbol and security name to the ticker dict as a 
             # key-value pair
             key = dicto['symbol']
@@ -1624,10 +1626,12 @@ class DataSetNorgate(DataProcess):
 
         # For each dictionary in the data extract
         for dicto in databasecontents:
+            
             # Add the symbol and security name to the ticker dict as a 
             # key-value pair
             key = dicto['symbol']
             value = dicto['securityname']
+            
             # Only take the back-adjusted tickers
             if '_CCB' in key:
                 init_ticker_dict[key] = value
@@ -1871,7 +1875,8 @@ class DataSetYahoo(DataProcess):
         self._importyahoo(tickers=tickers, start_date=self.start_date, 
                           end_date=self.end_date, ticker_limit=ticker_limit)
     
-        #self._ticker_clean()
+        # Remove tickers with short history    
+        self._ticker_clean()
     
         return self
    
@@ -1935,12 +1940,31 @@ class DataSetYahoo(DataProcess):
     
     
     def _ticker_clean(self):
+        """
+        Remove tickers with incomplete history
+
+        Returns
+        -------
+        Dict
+            Deletes DataFrames from raw ticker dict.
+
+        """
+        # Create empty list of tickers to be removed
         drop_list = []
+        
+        # Loop through each DataFrame in raw ticker dict
         for ticker, df in self.raw_ticker_dict.items():
+            
+            # If the DataFrame has less than full history 
             if len(df) < self.window:
+                
+                # Add ticker to the drop list
                 drop_list.append(ticker) 
         
+        # For each ticker in the drop list
         for ticker in drop_list:
+            
+            # Delete the ticker from the dictionary
             del self.raw_ticker_dict[ticker]
         
         return self        
@@ -1995,8 +2019,14 @@ class DataSetYahoo(DataProcess):
         # Set Index to Datetime
         df.index = pd.to_datetime(df.index)
         
+        # If the history window has not yet been set 
         if self.window is None:
+            
+            # If the difference in start dates between the chosen start date
+            # and the first value in the index is less than 5 days
             if (pd.to_datetime(start_date) - df.index[0]).days < 5:
+                
+                # Set the window length to the length of the DataFrame
                 self.window = len(df)
         
         return df
