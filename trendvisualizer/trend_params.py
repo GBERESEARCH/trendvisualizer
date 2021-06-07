@@ -8,6 +8,7 @@ trend_params_dict = {
     'df_ma_cross_list':[(10, 30), (20, 50), (50, 200)],
     'df_price_cross_list':[10, 20, 30, 50, 100, 200],
     'df_rsi_list':[10, 20, 30, 50, 100, 200],
+    'df_breakout_list':[10, 20, 30, 50, 100, 200],
     'df_atr_list':[14],
     
      # list of the individual trend flag lists

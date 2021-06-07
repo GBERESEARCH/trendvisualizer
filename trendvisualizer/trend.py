@@ -30,6 +30,9 @@ class DataProcess():
         # Initialize fixed default parameters
         self._init_fixed_params()
         
+        # Set empty time window
+        self.window = self.df_dict['df_window']
+       
     
     def _init_fixed_params(self):
         """
@@ -128,7 +131,7 @@ class DataProcess():
 
     def generate_fields(self, ma_list=None, macd_params=None, adx_list=None, 
                         ma_cross_list=None, price_cross_list=None, 
-                        rsi_list=None, atr_list=None):
+                        rsi_list=None, breakout_list=None, atr_list=None):
         """
         Generate the indicators used to calculate trend strength
 
@@ -149,6 +152,9 @@ class DataProcess():
             [10, 20, 30, 50, 100, 200].
         rsi_list : List, optional
             List of RSI periods. The default is [10, 20, 30, 50, 100, 200].
+        breakout_list : List, optional
+            List of breakout periods. The default is 
+            [10, 20, 30, 50, 100, 200].
         atr_list : List, optional
             List of ATR periods. The default is [14].
 
@@ -161,26 +167,26 @@ class DataProcess():
         # Set the lists of parameters used to calculate the trend indicators
         # either to those supplied or to the default values
         (ma_list, macd_params, adx_list, ma_cross_list, price_cross_list, 
-         rsi_list, atr_list) = itemgetter(
+         rsi_list, breakout_list, atr_list) = itemgetter(
              'ma_list', 'macd_params', 'adx_list', 'ma_cross_list', 
-             'price_cross_list', 'rsi_list', 
+             'price_cross_list', 'rsi_list', 'breakout_list',
              'atr_list')(self._refresh_params_default(
                  ma_list=ma_list, macd_params=macd_params, adx_list=adx_list, 
                  ma_cross_list=ma_cross_list, 
                  price_cross_list=price_cross_list, rsi_list=rsi_list, 
-                 atr_list=atr_list))
+                 breakout_list=breakout_list, atr_list=atr_list))
                  
         # Add trend fields to each of the DataFrames in ticker_dict
         self._fields(
             ma_list=ma_list, macd_params=macd_params, adx_list=adx_list, 
             ma_cross_list=ma_cross_list, price_cross_list=price_cross_list, 
-            rsi_list=rsi_list, atr_list=atr_list)
+            rsi_list=rsi_list, breakout_list=breakout_list, atr_list=atr_list)
     
         return self
            
 
-    def _fields(self, ma_list, macd_params, adx_list, 
-               ma_cross_list, price_cross_list, rsi_list, atr_list):
+    def _fields(self, ma_list, macd_params, adx_list, ma_cross_list, 
+                price_cross_list, rsi_list, breakout_list, atr_list):
         """
         Create and add various trend indicators to each DataFrame in 
         the dictionary of tickers    
@@ -202,6 +208,9 @@ class DataProcess():
             [10, 20, 30, 50, 100, 200].
         rsi_list : List, optional
             List of RSI periods. The default is [10, 20, 30, 50, 100, 200].
+        breakout_list : List, optional
+            List of breakout periods. The default is 
+            [10, 20, 30, 50, 100, 200].    
         atr_list : List, optional
             List of ATR periods. The default is [14].
 
@@ -283,6 +292,14 @@ class DataProcess():
                 except:
                     print("Error with " + ticker + " RSI_"+str(tenor))
            
+            # Create breakout flags with 14, 20, 50, 100 and 200 day timeframes
+            for tenor in breakout_list:
+                try:
+                    df['low_'+str(tenor)], df['high_'+str(tenor)], \
+                        df['breakout_'+str(tenor)] = Indicators.breakout(
+                            df, time_period=tenor)
+                except:
+                    print("Error with " + ticker + " breakout_"+str(tenor))
             
             # Create Average True Range with 14 day timeframe
             for tenor in atr_list:
@@ -1543,6 +1560,64 @@ class DataProcess():
         return sector_name, marker_size, trend_type, chart_barometer, \
             axis_range, plot_height, sector_list
         
+        
+    def _ticker_clean(self):
+        """
+        Remove tickers with incomplete history
+
+        Returns
+        -------
+        Dict
+            Deletes DataFrames from raw ticker dict.
+
+        """
+        # Create empty list of tickers to be removed
+        drop_list = []
+        
+        # Loop through each DataFrame in raw ticker dict
+        for ticker, df in self.raw_ticker_dict.items():
+            
+            # If the DataFrame has less than 90% full history 
+            if len(df) < (self.window * 0.9):
+                
+                # Add ticker to the drop list
+                drop_list.append(ticker) 
+        
+        # For each ticker in the drop list
+        for ticker in drop_list:
+            
+            # Delete the ticker from the dictionary
+            del self.raw_ticker_dict[ticker]
+        
+        return self        
+
+
+    def _window_set(self, df, start_date):
+        """
+        Set the correct length of the selected data
+
+        Parameters
+        ----------
+        df : DataFrame
+            The historical prices.
+        start_date : Str
+            The chosen start date.
+
+        Returns
+        -------
+        The window length as an object variable.
+
+        """
+        # If the history window has not yet been set 
+        if self.window is None:
+            
+            # If the difference in start dates between the chosen start date
+            # and the first value in the index is less than 5 days
+            if (pd.to_datetime(start_date) - df.index[0]).days < 5:
+                
+                # Set the window length to the length of the DataFrame
+                self.window = len(df)
+
 
 
 class DataSetNorgate(DataProcess):
@@ -1552,7 +1627,7 @@ class DataSetNorgate(DataProcess):
         
         # Inherit methods from DataProcess class
         DataProcess.__init__(self)
-
+        
         
     def prepnorgate(self, tickers=None, start_date=None, end_date=None, 
                     ticker_limit=None, lookback=None):
@@ -1588,6 +1663,9 @@ class DataSetNorgate(DataProcess):
         # Create dictionaries of DataFrames of prices and ticker names
         self._importnorgate(tickers=tickers, start_date=self.start_date,
                             end_date=self.end_date, ticker_limit=ticker_limit)
+    
+        # Remove tickers with short history    
+        self._ticker_clean()
     
         return self
     
@@ -1692,6 +1770,10 @@ class DataSetNorgate(DataProcess):
                 ticker_name = norgatedata.security_name(ticker)
                 self.ticker_name_dict[lowtick] = ticker_name
 
+                # Set the proper length of DataFrame to help filter out missing 
+                # data        
+                self._window_set(df=data, start_date=start_date)
+
             except:
                 print('Error importing : ', ticker)
                 
@@ -1747,7 +1829,8 @@ class DataSetNorgate(DataProcess):
             columns=self.commodity_sector_levels)
         
         return self
-
+    
+    
 
 class DataSetYahoo(DataProcess):
     
@@ -1762,10 +1845,7 @@ class DataSetYahoo(DataProcess):
         
         # Set short_name_dict = name_dict
         self.ticker_short_name_dict = self.ticker_name_dict
-        
-        # Set empty time window
-        self.window = self.df_dict['df_window']
-
+       
 
     def _tickerextract(self):
         """
@@ -1938,38 +2018,7 @@ class DataSetYahoo(DataProcess):
         
         return self
     
-    
-    def _ticker_clean(self):
-        """
-        Remove tickers with incomplete history
 
-        Returns
-        -------
-        Dict
-            Deletes DataFrames from raw ticker dict.
-
-        """
-        # Create empty list of tickers to be removed
-        drop_list = []
-        
-        # Loop through each DataFrame in raw ticker dict
-        for ticker, df in self.raw_ticker_dict.items():
-            
-            # If the DataFrame has less than full history 
-            if len(df) < self.window:
-                
-                # Add ticker to the drop list
-                drop_list.append(ticker) 
-        
-        # For each ticker in the drop list
-        for ticker in drop_list:
-            
-            # Delete the ticker from the dictionary
-            del self.raw_ticker_dict[ticker]
-        
-        return self        
-    
-    
     def _returndata(self, ticker, start_date, end_date):
         """
         Create DataFrame of historic prices for specified ticker.
@@ -2018,16 +2067,9 @@ class DataSetYahoo(DataProcess):
         
         # Set Index to Datetime
         df.index = pd.to_datetime(df.index)
-        
-        # If the history window has not yet been set 
-        if self.window is None:
-            
-            # If the difference in start dates between the chosen start date
-            # and the first value in the index is less than 5 days
-            if (pd.to_datetime(start_date) - df.index[0]).days < 5:
-                
-                # Set the window length to the length of the DataFrame
-                self.window = len(df)
+
+        # Set the proper length of DataFrame to help filter out missing data        
+        self._window_set(df=df, start_date=start_date)
         
         return df
 
