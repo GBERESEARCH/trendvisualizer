@@ -2,10 +2,11 @@
 trend_params_dict = {
     # lists of parameters for each of the trend flags calculated 
     # in fields function
-    'df_ma_list':[10, 20, 30, 50, 100, 200],
+    'df_ma_list':[5, 10, 20, 30, 50, 100, 200],
     'df_macd_params':[12, 26, 9],
     'df_adx_list':[10, 20, 30, 50, 100, 200],
-    'df_ma_cross_list':[(10, 30), (20, 50), (50, 200)],
+    'df_ma_cross_list':[(5, 200), (10, 30), (10, 50), (20, 50), (30, 100), 
+                        (50, 200)],
     'df_price_cross_list':[10, 20, 30, 50, 100, 200],
     'df_rsi_list':[10, 20, 30, 50, 100, 200],
     'df_breakout_list':[10, 20, 30, 50, 100, 200],
@@ -38,29 +39,47 @@ trend_params_dict = {
          ],
      
      'df_trend_flags':[
-         'PX_MA_10',
+         'MA_5_200_flag',
+         'PX_MA_10_flag',
          'ADX_10_flag',
          'RSI_10_flag',
-         'MA_10_30',
-         'MACD_flag',           
-         'PX_MA_20',
-         'MA_20_50',
+         'breakout_10_flag',
+         'MA_10_30_flag',
+         'MACD_flag',
+         'MA_10_50_flag',           
+         'PX_MA_20_flag',
+         'MA_20_50_flag',
          'ADX_20_flag',
          'RSI_20_flag',
-         'PX_MA_30',
+         'breakout_20_flag',
+         'PX_MA_30_flag',
          'ADX_30_flag',
          'RSI_30_flag',
-         'PX_MA_50',
-         'MA_50_200',
+         'breakout_30_flag',
+         'MA_30_100_flag',
+         'PX_MA_50_flag',
+         'MA_50_200_flag',
          'ADX_50_flag',
          'RSI_50_flag',
-         'PX_MA_100',
+         'breakout_50_flag',
+         'PX_MA_100_flag',
          'ADX_100_flag',
          'RSI_100_flag',
-         'PX_MA_200',
+         'breakout_100_flag',
+         'PX_MA_200_flag',
          'ADX_200_flag',
-         'RSI_200_flag'
+         'RSI_200_flag',
+         'breakout_200_flag'
          ],
+     
+     # Indicator name mappings for pie charts
+     'df_indicator_name_dict':{
+         'adx':('ADX', 'ADX'),
+         'ma_cross':('MA', 'MA Crossover'),
+         'price_cross':('PX_MA', 'Price MA Crossover'),
+         'rsi':('RSI', 'RSI'),
+         'breakout':('breakout', 'Breakout')
+         },
      
      # Parameters to overwrite mpl_style defaults
      'df_mpl_line_params':{

@@ -54,6 +54,8 @@ class DataProcess():
         self.equity_sector_levels = self.df_dict['df_equity_sector_levels']
         self.ticker_types = self.df_dict['df_ticker_types']
         
+        self.indicator_name_dict = self.df_dict['df_indicator_name_dict']
+        
     
     def _refresh_params_default(self, **kwargs):
         """
@@ -240,24 +242,27 @@ class DataProcess():
             # Create flag for price crossing moving average
             for tenor in price_cross_list:
                 try:
-                    df['PX_MA_'+str(tenor)] = np.where(
+                    df['PX_MA_'+str(tenor)+'_flag'] = np.where(
                         df['Close'] > df['MA_'+str(tenor)], 1, -1)
                 except:
                     print("Error with " + ticker + " PX_MA_"+str(tenor))
             
             # Create MACD, Signal and Hist using default parameters 
             # of 12, 26, 9
-            df['MACD'], df['MACD_SIGNAL'], df['MACD_HIST'] = Indicators.MACD(
-                close=df['Close'], 
-                fast=macd_params[0], 
-                slow=macd_params[1], 
-                signal=macd_params[2])
-            
-            
-            # Create flag for MACD histogram increasing 
-            df['MACD_flag'] = np.where(df['MACD_HIST'].diff() > 0, 1, -1)
-            
-            
+            try:
+                df['MACD'], df['MACD_SIGNAL'], \
+                    df['MACD_HIST'] = Indicators.MACD(
+                        close=df['Close'], 
+                        fast=macd_params[0], 
+                        slow=macd_params[1], 
+                        signal=macd_params[2])                
+                
+                # Create flag for MACD histogram increasing 
+                df['MACD_flag'] = np.where(df['MACD_HIST'].diff() > 0, 1, -1)
+
+            except:
+                print("Error with " + ticker + " MACD")
+
             # Create ADX of 14, 20, 50, 100 and 200 day timeframes 
             # Create flags for ADX over 25
             for tenor in adx_list:
@@ -267,18 +272,20 @@ class DataProcess():
                         time_period=tenor)
                     df['ADX_'+str(tenor)+'_flag'] = np.where(
                         df['ADX_'+str(tenor)] > 25, np.where(
-                            df['PX_MA_'+str(tenor)] == 1, 1, -1), 0)
+                            df['PX_MA_'+str(tenor)+'_flag'] == 1, 1, -1), 0)
                 except:
-                    print("Error with " + ticker + " ADX_"+str(tenor))
-            
+                    print("Error with " + ticker + " ADX_"+str(tenor))            
              
             # Create flag for fast moving average crossing slow moving 
             # average
             for tenor_pair in ma_cross_list:
-                df['MA_'+str(tenor_pair[0])+'_'+str(tenor_pair[1])] = np.where(
-                    df['MA_'+str(tenor_pair[0])] > df[
-                        'MA_'+str(tenor_pair[1])], 1, -1)
-
+                try:
+                    df['MA_'+str(tenor_pair[0])+'_'+str(
+                        tenor_pair[1])+'_flag'] = np.where(
+                            df['MA_'+str(tenor_pair[0])] > df[
+                                'MA_'+str(tenor_pair[1])], 1, -1)
+                except:
+                    print("Error with " + ticker + " MA_"+str(tenor))
 
             # Create RSI with 14, 20, 50, 100 and 200 day timeframes 
             # Create flag for RSI over 70 or under 30
@@ -296,8 +303,9 @@ class DataProcess():
             for tenor in breakout_list:
                 try:
                     df['low_'+str(tenor)], df['high_'+str(tenor)], \
-                        df['breakout_'+str(tenor)] = Indicators.breakout(
-                            df, time_period=tenor)
+                        df['breakout_'+str(
+                            tenor)+'_flag'] = Indicators.breakout(
+                                df, time_period=tenor)
                 except:
                     print("Error with " + ticker + " breakout_"+str(tenor))
             
@@ -324,25 +332,31 @@ class DataProcess():
             The default values are ['PX_MA_10',
                                     'ADX_10_flag',
                                     'RSI_10_flag',
+                                    'breakout_10_flag',
                                     'MA_10_30',
                                     'MACD_flag',           
                                     'PX_MA_20',
                                     'MA_20_50',
                                     'ADX_20_flag',
                                     'RSI_20_flag',
+                                    'breakout_20_flag',
                                     'PX_MA_30',
                                     'ADX_30_flag',
                                     'RSI_30_flag',
+                                    'breakout_30_flag',
                                     'PX_MA_50',
                                     'MA_50_200',
                                     'ADX_50_flag',
                                     'RSI_50_flag',
+                                    'breakout_50_flag',
                                     'PX_MA_100',
                                     'ADX_100_flag',
                                     'RSI_100_flag',
+                                    'breakout_100_flag',
                                     'PX_MA_200',
                                     'ADX_200_flag',
-                                    'RSI_200_flag'
+                                    'RSI_200_flag',
+                                    'breakout_200_flag'
                                     ].
 
         Returns
@@ -376,25 +390,31 @@ class DataProcess():
             The default values are ['PX_MA_10',
                                     'ADX_10_flag',
                                     'RSI_10_flag',
+                                    'breakout_10_flag',
                                     'MA_10_30',
                                     'MACD_flag',           
                                     'PX_MA_20',
                                     'MA_20_50',
                                     'ADX_20_flag',
                                     'RSI_20_flag',
+                                    'breakout_20_flag',
                                     'PX_MA_30',
                                     'ADX_30_flag',
                                     'RSI_30_flag',
+                                    'breakout_30_flag',
                                     'PX_MA_50',
                                     'MA_50_200',
                                     'ADX_50_flag',
                                     'RSI_50_flag',
+                                    'breakout_50_flag',
                                     'PX_MA_100',
                                     'ADX_100_flag',
                                     'RSI_100_flag',
+                                    'breakout_100_flag',
                                     'PX_MA_200',
                                     'ADX_200_flag',
-                                    'RSI_200_flag'
+                                    'RSI_200_flag',
+                                    'breakout_200_flag'
                                     ].
 
         Returns
@@ -469,7 +489,7 @@ class DataProcess():
         
         # Apply sector mappings
         self._barometer_sectors()
-        
+       
         return self
     
 
@@ -849,7 +869,8 @@ class DataProcess():
         palette = plt.get_cmap('tab20')
         
         # Initialize the figure
-        fig, ax = plt.subplots(figsize=(int(chart_dimensions[1]*3),int(chart_dimensions[0]*2)))
+        fig, ax = plt.subplots(figsize=(int(chart_dimensions[1]*3),
+                                        int(chart_dimensions[0]*2)))
         fig.subplots_adjust(top=0.85)
         fig.tight_layout()
                
@@ -944,6 +965,38 @@ class DataProcess():
             # Set xtick labels at 70 degrees
             plt.xticks(rotation=70)
         
+        # Create chart title label
+        charttitle = self._get_charttitle(self, norm=norm, trend=trend, 
+                                          days=days)
+               
+        # general title
+        fig.suptitle(charttitle, 
+                     fontsize=20, 
+                     fontweight=0, 
+                     color='black', 
+                     style='italic', 
+                     y=1.05)
+    
+    
+    def _get_charttitle(self, norm, trend, days):
+        """
+        Create title label for market chart
+
+        Parameters
+        ----------
+        norm : Bool
+            Whether the prices have been normalised.
+        trend : Str
+            The type / direction of the trend.
+        days : Int
+            The number of days price history.
+
+        Returns
+        -------
+        charttitle : Str
+            The chart title label.
+
+        """
         # Update chart title based on whether the data is normalized 
         # and the chosen trend type to display
         if norm:
@@ -997,15 +1050,9 @@ class DataProcess():
                 charttitle = ("Most Strongly and Neutral Trending" 
                               +" Markets - Price Over Last "
                               +str(days)+' Trading Days')            
-       
-        # general title
-        fig.suptitle(charttitle, 
-                     fontsize=20, 
-                     fontweight=0, 
-                     color='black', 
-                     style='italic', 
-                     y=1.05)
-       
+
+        return charttitle
+        
     
     @staticmethod
     def _mkt_dims(mkts):
@@ -1559,6 +1606,63 @@ class DataProcess():
         
         return sector_name, marker_size, trend_type, chart_barometer, \
             axis_range, plot_height, sector_list
+        
+        
+    def pie_summary(self, indicator_type):
+        plt.style.use('seaborn-darkgrid')
+        plt.rcParams.update(self.mpl_chart_params)
+        plt.tight_layout()
+        
+        indicator_type_ref = self.indicator_name_dict[indicator_type][0]
+        indicator_tenors = self.__dict__[indicator_type+'_list']
+        fig, ax = plt.subplots(figsize=(8, 6))
+        for num, tenor in enumerate(indicator_tenors):
+            if indicator_type == 'ma_cross':
+                indicator = indicator_type_ref+'_'+str(tenor[0])+'_'+str(
+                    tenor[1])
+            else:    
+                indicator = indicator_type_ref+'_'+str(tenor)
+            long = len(self.barometer[
+                self.barometer[
+                    indicator+'_flag']==1]) / len(self.barometer)
+            short = len(self.barometer[
+                self.barometer[
+                    indicator+'_flag']==-1]) / len(self.barometer)
+            neutral = len(self.barometer[
+                self.barometer[
+                    indicator+'_flag']==0]) / len(self.barometer)
+            
+            # Find the right spot on the plot
+            ax = plt.subplot(2, 3, num+1)
+            labels = 'Long', 'Short', 'Neutral'
+            sizes = [long*100, short*100, neutral*100]
+            explode = explode = (0.15, 0.15, 0.15)
+            
+            ax.pie(sizes, 
+                   explode=explode, 
+                   labels=labels, 
+                   autopct='%1.1f%%',
+                   wedgeprops={'edgecolor':'black', 
+                               'linewidth':2, 
+                               'antialiased':True},
+                   shadow=True, 
+                   startangle=90)
+            ax.axis('equal')  # Ensures that pie is drawn as a circle.
+            ax.set_title(str(tenor)+' day '+indicator_type_ref.upper(), 
+                         fontsize=10, 
+                         y=1)
+                    
+        # Create chart title label
+        charttitle = 'Trend direction of '+self.indicator_name_dict[
+            indicator_type][1]+' indicators'
+                       
+        # general title
+        fig.suptitle(charttitle, 
+                     fontsize=20, 
+                     fontweight=0, 
+                     color='black', 
+                     style='italic', 
+                     y=1.02) 
         
         
     def _ticker_clean(self):
