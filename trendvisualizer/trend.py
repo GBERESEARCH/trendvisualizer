@@ -13,6 +13,7 @@ import warnings
 from matplotlib.ticker import MaxNLocator, AutoMinorLocator, PercentFormatter
 from matplotlib.dates import MO, WeekdayLocator, MonthLocator
 from matplotlib import font_manager as fm
+from matplotlib.patches import ConnectionPatch
 from operator import itemgetter
 from pandas.tseries.offsets import BDay
 from technicalmethods.methods import Indicators
@@ -1689,31 +1690,18 @@ class DataProcess():
                                                #colors=colors,
                                                startangle=90)
             
-            # Resize direction and percentage labels
+            # Reformat direction and percentage labels
             percprop = fm.FontProperties()
             dirprop = fm.FontProperties()
             percprop.set_size('small')
             percprop.set_weight('bold')
-                        
             dirprop.set_size('x-small')
             plt.setp(autotexts, fontproperties=percprop)
             plt.setp(texts, fontproperties=dirprop)
-            
             autotexts[0].set_color('red')
             autotexts[1].set_color('red')
             autotexts[2].set_color('red')
-
-
-            #ax.pie(sizes, 
-            #       explode=explode, 
-            #       labels=labels, 
-            #       autopct='%1.1f%%',
-            #       wedgeprops={'edgecolor':'black', 
-            #                   'linewidth':2, 
-            #                   'antialiased':True},
-            #       shadow=True, 
-            #       startangle=90)
-            
+                        
             # Ensures that pie is drawn as a circle.
             ax.axis('equal')
             
@@ -1733,6 +1721,192 @@ class DataProcess():
                      color='black', 
                      style='italic', 
                      y=1.02) 
+    
+        
+    def piechart_breakdown(self, indicator_type='breakout', tenor=50, 
+                           sector_level=1):
+        """
+        Chart showing the proportions of long, short and neutral signals for a 
+        given indicator and tenor and the breakdown of these by sector
+
+        Parameters
+        ----------
+        indicator_type : Str
+            The indicator to plot. Choose from 'adx', 'ma_cross', 
+            'price_cross', 'rsi', 'breakout'.
+        tenor : Int / Tuple
+            The time period of the indicator. For the Moving Average crossover 
+            this is a tuple from the following pairs: (5, 200), (10, 30), 
+            (10, 50), (20, 50), (30, 100), (50, 200). For the other indicators 
+            this is an integer from the list: 10, 20, 30, 50, 100, 200.
+        sector_level : Int, optional
+            The level of granularity of the assets. 
+            For Commodities the choices are: 
+                1:'Asset Class', 
+                2:'Broad Sector', 
+                3:'Mid Sector', 
+                4:'Narrow Sector',
+                5:'Underlying'. 
+            For Equities the choices are:
+                1:'Sector', 
+                2:'Industry Group', 
+                3:'Industry', 
+                4:'Sub-Industry', 
+                5:'Security'
+
+        Returns
+        -------
+        Displays the chart.
+
+        """
+        # make figure and assign axis objects
+        fig = plt.figure(figsize=(10, 5))
+        gs = fig.add_gridspec(16, 3)
+        ax1 = fig.add_subplot(gs[:, 0])
+        ax2 = fig.add_subplot(gs[3:13, 1])
+        ax3 = fig.add_subplot(gs[3:13, 2])
+        
+        # pie chart parameters
+        indicator_type_ref = self.indicator_name_dict[indicator_type][0]
+        if indicator_type == 'ma_cross':
+            indicator = indicator_type_ref+'_'+str(tenor[0])+'_'+str(tenor[1])
+        else:    
+            indicator = indicator_type_ref+'_'+str(tenor)
+        
+        # Calculate the proportions that are long, short or neutral
+        long = len(self.barometer[self.barometer[
+            indicator+'_flag']==1]) / len(self.barometer)
+        short = len(self.barometer[self.barometer[
+            indicator+'_flag']==-1]) / len(self.barometer)
+        neutral = len(self.barometer[self.barometer[
+            indicator+'_flag']==0]) / len(self.barometer)
+        
+        labels = 'Long', 'Short', 'Neutral'
+        ratios = [long, short, neutral]
+        explode = explode = (0.1, 0.1, 0.1)
+        angle = 45       
+        
+        pie_perc_color = 'red'
+        bar_perc_color = 'black'
+        pie_perc_size = 'medium'
+        bar_perc_size = 'x-small'
+        ax1_patches, ax1_texts, ax1_autotexts = ax1.pie(
+            ratios, 
+            explode=explode,
+            labels=labels, 
+            autopct='%1.1f%%',
+            wedgeprops={'edgecolor':'black', 
+                        'linewidth':2, 
+                        'antialiased':True},
+            shadow=True, 
+            startangle=angle)
+        
+        # Reformat direction and percentage labels
+        percprop = fm.FontProperties()
+        dirprop = fm.FontProperties()
+        percprop.set_size(pie_perc_size)
+        percprop.set_weight('bold')
+        dirprop.set_size('medium')
+        plt.setp(ax1_autotexts, fontproperties=percprop)
+        plt.setp(ax1_texts, fontproperties=dirprop)
+        ax1_autotexts[0].set_color(pie_perc_color)
+        ax1_autotexts[1].set_color(pie_perc_color)
+        ax1_autotexts[2].set_color(pie_perc_color)
+        
+        # Set piechart title
+        ax1.set_title('Market Direction Proportions')
+
+        sector_name = self.commodity_sector_levels[sector_level-1]
+        
+        # bar chart parameters
+        sector_split = pd.crosstab(index=self.barometer[sector_name], 
+                                   columns=self.barometer[indicator+'_flag'], 
+                                   margins=True)
+        
+        sector_split = sector_split.rename(columns={1:'long', 
+                                                    0:'neutral',
+                                                    -1:'short'})
+        
+        for column in ['long', 'neutral', 'short']:
+            if column not in sector_split.columns:
+                sector_split[column] = np.zeros((len(sector_split)))
+                sector_split[column][-1] = 1
+        
+        sector_split['long proportion'] = sector_split[
+            'long'] / sector_split['long'][-1]
+        sector_split['neutral proportion'] = sector_split[
+            'neutral'] / sector_split['neutral'][-1]
+        sector_split['short proportion'] = sector_split[
+            'short'] / sector_split['short'][-1]
+        
+        non_zero_split = sector_split[['long proportion']]
+        non_zero_split = non_zero_split.loc[(non_zero_split!=0).any(1)]
+        
+        xpos = -0.2
+        bottom = 0
+        ratios = list(non_zero_split['long proportion'][:-1])
+        width = .2
+        
+        for j in range(len(ratios)):
+            height = ratios[j]
+            ax2.bar(xpos, 
+                    height, 
+                    width, 
+                    edgecolor='black',
+                    bottom=bottom)
+            
+            ypos = bottom + ax2.patches[j].get_height() / 2
+            bottom += height
+            ax2.text(xpos, ypos, "%d%%" % (ax2.patches[j].get_height() * 100),
+                     ha='center', va='center', color=bar_perc_color, 
+                     fontsize=bar_perc_size)
+        
+        ax2.set_title('Sector Breakdown Long')
+        ax2.legend((list(non_zero_split.index[:-1])),
+                   bbox_to_anchor= (0.5, 1),
+                   fontsize=8)
+        ax2.axis('off')
+        ax2.set_xlim(- 2.5 * width, 2.5 * width)
+        
+        non_zero_split = sector_split[['short proportion']]
+        non_zero_split = non_zero_split.loc[(non_zero_split!=0).any(1)]
+        ratios = list(non_zero_split['short proportion'][:-1])
+        
+        for j in range(len(ratios)):
+            height = ratios[j]
+            ax3.bar(xpos, 
+                    height, 
+                    width, 
+                    edgecolor='black',
+                    bottom=bottom)
+            
+            ypos = bottom + ax3.patches[j].get_height() / 2
+            bottom += height
+            ax3.text(xpos, ypos, "%d%%" % (ax3.patches[j].get_height() * 100),
+                     ha='center', va='center', color=bar_perc_color, 
+                     fontsize=bar_perc_size)
+        
+        ax3.set_title('Sector Breakdown Short')
+        ax3.legend((list(non_zero_split.index[:-1])),
+                   bbox_to_anchor= (0.5, 1),
+                   fontsize=8)
+        ax3.axis('off')
+        ax3.set_xlim(- 2.5 * width, 2.5 * width)
+        
+        
+        # Create chart title label
+        charttitle = 'Trend direction of '+str(tenor)+' day '+ \
+            self.indicator_name_dict[indicator_type][1]
+                       
+        # general title
+        fig.suptitle(charttitle, 
+                     fontsize=20, 
+                     fontweight=0, 
+                     color='black', 
+                     style='italic', 
+                     y=0.9)
+        
+        plt.show()    
         
         
     def _ticker_clean(self):
