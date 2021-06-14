@@ -7,14 +7,15 @@ import norgatedata
 import numpy as np
 import pandas as pd
 import requests
-from technicalmethods.methods import Indicators
 import trend_params as tp
 import seaborn as sns
 import warnings
 from matplotlib.ticker import MaxNLocator, AutoMinorLocator, PercentFormatter
 from matplotlib.dates import MO, WeekdayLocator, MonthLocator
+from matplotlib import font_manager as fm
 from operator import itemgetter
 from pandas.tseries.offsets import BDay
+from technicalmethods.methods import Indicators
 from yahoofinancials import YahooFinancials
 
 
@@ -1609,19 +1610,53 @@ class DataProcess():
         
         
     def pie_summary(self, indicator_type):
+        """
+        Plot pie charts for each of the 6 tenors: 10D, 20D, 30D, 50D, 100D 
+        and 200D for the chosen trend indicator.  
+
+        Parameters
+        ----------
+        indicator_type : Str
+            The indicator to plot. Choose from 'adx', 'ma_cross', 
+            'price_cross', 'rsi', 'breakout'.
+
+        Returns
+        -------
+        Summary graph of 6 pie charts.
+
+        """
+        
+        # Set style
         plt.style.use('seaborn-darkgrid')
         plt.rcParams.update(self.mpl_chart_params)
         plt.tight_layout()
         
+        # Extract the relevant column prefix from the dictionary of defaults
         indicator_type_ref = self.indicator_name_dict[indicator_type][0]
+        
+        # Get the list of tenors
         indicator_tenors = self.__dict__[indicator_type+'_list']
-        fig, ax = plt.subplots(figsize=(8, 6))
+        
+        # Initialize the graph object
+        fig, ax = plt.subplots(figsize=(8, 6))#, facecolor='mediumaquamarine')
+        
+        #plt.figure(facecolor='grey')
+        
+        # Loop through each tenor
         for num, tenor in enumerate(indicator_tenors):
+            
+            # Naming convention for the moving average crossover differs as it 
+            # comes from a tuple of 2 tenors 
             if indicator_type == 'ma_cross':
                 indicator = indicator_type_ref+'_'+str(tenor[0])+'_'+str(
                     tenor[1])
+            
+            # The other names just take a single tenor
             else:    
                 indicator = indicator_type_ref+'_'+str(tenor)
+            
+            # Calculate the proportion of the indicator that are long, short 
+            # or neutral across the whole range of assets
             long = len(self.barometer[
                 self.barometer[
                     indicator+'_flag']==1]) / len(self.barometer)
@@ -1635,28 +1670,63 @@ class DataProcess():
             # Find the right spot on the plot
             ax = plt.subplot(2, 3, num+1)
             labels = 'Long', 'Short', 'Neutral'
+            #colors = 'wheat', 'lavender', 'lightblue'
             sizes = [long*100, short*100, neutral*100]
+            
+            # Set how much the pie slices are separated
             explode = explode = (0.15, 0.15, 0.15)
             
-            ax.pie(sizes, 
-                   explode=explode, 
-                   labels=labels, 
-                   autopct='%1.1f%%',
-                   wedgeprops={'edgecolor':'black', 
-                               'linewidth':2, 
-                               'antialiased':True},
-                   shadow=True, 
-                   startangle=90)
-            ax.axis('equal')  # Ensures that pie is drawn as a circle.
+            # Create the pie chart
+            patches, texts, autotexts = ax.pie(sizes, 
+                                               explode=explode, 
+                                               labels=labels, 
+                                               autopct='%1.1f%%',
+                                               wedgeprops={'edgecolor':'black', 
+                                                           'linewidth':2, 
+                                                           'antialiased':True},
+                                               textprops={'color':'black'},
+                                               shadow=True,
+                                               #colors=colors,
+                                               startangle=90)
+            
+            # Resize direction and percentage labels
+            percprop = fm.FontProperties()
+            dirprop = fm.FontProperties()
+            percprop.set_size('small')
+            percprop.set_weight('bold')
+                        
+            dirprop.set_size('x-small')
+            plt.setp(autotexts, fontproperties=percprop)
+            plt.setp(texts, fontproperties=dirprop)
+            
+            autotexts[0].set_color('red')
+            autotexts[1].set_color('red')
+            autotexts[2].set_color('red')
+
+
+            #ax.pie(sizes, 
+            #       explode=explode, 
+            #       labels=labels, 
+            #       autopct='%1.1f%%',
+            #       wedgeprops={'edgecolor':'black', 
+            #                   'linewidth':2, 
+            #                   'antialiased':True},
+            #       shadow=True, 
+            #       startangle=90)
+            
+            # Ensures that pie is drawn as a circle.
+            ax.axis('equal')
+            
+            # Set the individual chart title
             ax.set_title(str(tenor)+' day '+indicator_type_ref.upper(), 
                          fontsize=10, 
                          y=1)
                     
-        # Create chart title label
+        # Create overall chart title label
         charttitle = 'Trend direction of '+self.indicator_name_dict[
             indicator_type][1]+' indicators'
                        
-        # general title
+        # Assign this to the figure
         fig.suptitle(charttitle, 
                      fontsize=20, 
                      fontweight=0, 
