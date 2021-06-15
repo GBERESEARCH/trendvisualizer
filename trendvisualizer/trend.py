@@ -13,7 +13,6 @@ import warnings
 from matplotlib.ticker import MaxNLocator, AutoMinorLocator, PercentFormatter
 from matplotlib.dates import MO, WeekdayLocator, MonthLocator
 from matplotlib import font_manager as fm
-from matplotlib.patches import ConnectionPatch
 from operator import itemgetter
 from pandas.tseries.offsets import BDay
 from technicalmethods.methods import Indicators
@@ -968,8 +967,7 @@ class DataProcess():
             plt.xticks(rotation=70)
         
         # Create chart title label
-        charttitle = self._get_charttitle(self, norm=norm, trend=trend, 
-                                          days=days)
+        charttitle = self._get_charttitle(norm=norm, trend=trend, days=days)
                
         # general title
         fig.suptitle(charttitle, 
@@ -1588,7 +1586,7 @@ class DataProcess():
         
         # Set the maximum height of the chart
         if chart_type == 'strip':    
-            plot_height = max_bucket_per_sector * num_sectors / 6     
+            plot_height = max_bucket_per_sector * num_sectors / 5     
         else:
             if dodge:
                 #plot_height = max((max_bucket / 2), 
@@ -1639,7 +1637,7 @@ class DataProcess():
         indicator_tenors = self.__dict__[indicator_type+'_list']
         
         # Initialize the graph object
-        fig, ax = plt.subplots(figsize=(8, 6))#, facecolor='mediumaquamarine')
+        fig, ax = plt.subplots(figsize=(10, 8))#, facecolor='mediumaquamarine')
         
         #plt.figure(facecolor='grey')
         
@@ -1687,15 +1685,17 @@ class DataProcess():
                                                            'antialiased':True},
                                                textprops={'color':'black'},
                                                shadow=True,
+                                               labeldistance=1.05,
+                                               #rotatelabels=True,
                                                #colors=colors,
                                                startangle=90)
             
             # Reformat direction and percentage labels
             percprop = fm.FontProperties()
             dirprop = fm.FontProperties()
-            percprop.set_size('small')
+            percprop.set_size('medium')
             percprop.set_weight('bold')
-            dirprop.set_size('x-small')
+            dirprop.set_size('medium')
             plt.setp(autotexts, fontproperties=percprop)
             plt.setp(texts, fontproperties=dirprop)
             autotexts[0].set_color('red')
@@ -1707,7 +1707,7 @@ class DataProcess():
             
             # Set the individual chart title
             ax.set_title(str(tenor)+' day '+indicator_type_ref.upper(), 
-                         fontsize=10, 
+                         fontsize=12, 
                          y=1)
                     
         # Create overall chart title label
@@ -1720,10 +1720,10 @@ class DataProcess():
                      fontweight=0, 
                      color='black', 
                      style='italic', 
-                     y=1.02) 
+                     y=1) 
     
         
-    def piechart_breakdown(self, indicator_type='breakout', tenor=50, 
+    def pie_breakdown(self, indicator_type='breakout', tenor=50, 
                            sector_level=1):
         """
         Chart showing the proportions of long, short and neutral signals for a 
@@ -1759,6 +1759,12 @@ class DataProcess():
         Displays the chart.
 
         """
+        
+        # Set style
+        plt.style.use('seaborn-darkgrid')
+        plt.rcParams.update(self.mpl_chart_params)
+        plt.tight_layout()
+        
         # make figure and assign axis objects
         fig = plt.figure(figsize=(10, 5))
         gs = fig.add_gridspec(16, 3)
@@ -1806,7 +1812,7 @@ class DataProcess():
         dirprop = fm.FontProperties()
         percprop.set_size(pie_perc_size)
         percprop.set_weight('bold')
-        dirprop.set_size('medium')
+        dirprop.set_size('small')
         plt.setp(ax1_autotexts, fontproperties=percprop)
         plt.setp(ax1_texts, fontproperties=dirprop)
         ax1_autotexts[0].set_color(pie_perc_color)
@@ -1814,9 +1820,15 @@ class DataProcess():
         ax1_autotexts[2].set_color(pie_perc_color)
         
         # Set piechart title
-        ax1.set_title('Market Direction Proportions')
+        ax1.set_title('Market Direction Proportions', fontsize=10)
 
-        sector_name = self.commodity_sector_levels[sector_level-1]
+        # Set sector names when using Norgate futures data
+        if self.asset_type == 'CTA':            
+            sector_name = self.commodity_sector_levels[sector_level-1]
+
+        # Otherwise for Yahoo SPX data    
+        else:
+            sector_name = self.equity_sector_levels[sector_level-1]
         
         # bar chart parameters
         sector_split = pd.crosstab(index=self.barometer[sector_name], 
@@ -1861,7 +1873,7 @@ class DataProcess():
                      ha='center', va='center', color=bar_perc_color, 
                      fontsize=bar_perc_size)
         
-        ax2.set_title('Sector Breakdown Long')
+        ax2.set_title('Sector Breakdown Long', fontsize=10)
         ax2.legend((list(non_zero_split.index[:-1])),
                    bbox_to_anchor= (0.5, 1),
                    fontsize=8)
@@ -1886,7 +1898,7 @@ class DataProcess():
                      ha='center', va='center', color=bar_perc_color, 
                      fontsize=bar_perc_size)
         
-        ax3.set_title('Sector Breakdown Short')
+        ax3.set_title('Sector Breakdown Short', fontsize=10)
         ax3.legend((list(non_zero_split.index[:-1])),
                    bbox_to_anchor= (0.5, 1),
                    fontsize=8)
