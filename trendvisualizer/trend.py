@@ -567,7 +567,7 @@ class DataProcess():
         plt.style.use('seaborn-darkgrid')
         plt.rcParams.update(self.mpl_bar_params)
         num_markets = min(mkts, 20)
-        fig, ax = plt.subplots(figsize=(8,int(num_markets/2)))
+        fig, ax = plt.subplots(figsize=(6,int(num_markets/3)))
         plt.tight_layout()
        
         # Set the xticks to be integer values
@@ -580,7 +580,7 @@ class DataProcess():
         ax.yaxis.set_tick_params(pad=15)
 
         # Set axis tick label size
-        font_scaler = min(int(0.6*(50-mkts)), 18)
+        font_scaler = min(int(0.6*(50-mkts)), 12)
         ax.tick_params(axis='both', which='both', labelsize=font_scaler)
                 
         # Set the yticks to be horizontal
@@ -658,7 +658,7 @@ class DataProcess():
         
         # Set title
         plt.suptitle(titlestr+' Trending Markets', 
-                     fontsize=24, 
+                     fontsize=18, 
                      fontweight=0, 
                      color='black', 
                      style='italic', 
@@ -1455,7 +1455,8 @@ class DataProcess():
                                y=sector_name,
                                data=self.barometer, 
                                dodge=True, 
-                               alpha=1, 
+                               alpha=0.5, 
+                               jitter=0.2,
                                order=sector_list,
                                marker=marker,
                                palette='viridis',
@@ -1586,7 +1587,10 @@ class DataProcess():
         
         # Set the maximum height of the chart
         if chart_type == 'strip':    
-            plot_height = max_bucket_per_sector * num_sectors / 5     
+            if num_sectors > 200:
+                plot_height = max_bucket_per_sector * num_sectors / 5     
+            else:
+                plot_height = max_bucket_per_sector * num_sectors / 20
         else:
             if dodge:
                 #plot_height = max((max_bucket / 2), 
@@ -1675,6 +1679,8 @@ class DataProcess():
             # Set how much the pie slices are separated
             explode = explode = (0.15, 0.15, 0.15)
             
+            angle = 135 * sizes[2] / 100
+            
             # Create the pie chart
             patches, texts, autotexts = ax.pie(sizes, 
                                                explode=explode, 
@@ -1685,22 +1691,30 @@ class DataProcess():
                                                            'antialiased':True},
                                                textprops={'color':'black'},
                                                shadow=True,
-                                               labeldistance=1.05,
+                                               labeldistance=1.15,
                                                #rotatelabels=True,
                                                #colors=colors,
-                                               startangle=90)
+                                               startangle=angle)
             
             # Reformat direction and percentage labels
             percprop = fm.FontProperties()
             dirprop = fm.FontProperties()
             percprop.set_size('medium')
             percprop.set_weight('bold')
-            dirprop.set_size('medium')
+            dirprop.set_size('small')
             plt.setp(autotexts, fontproperties=percprop)
             plt.setp(texts, fontproperties=dirprop)
             autotexts[0].set_color('red')
             autotexts[1].set_color('red')
             autotexts[2].set_color('red')
+            
+            # If the long and short slices are very small, shift the short text
+            # to prevent overlapping
+            if neutral > 0.97:
+                long_x = texts[0]._x
+                long_y = texts[0]._y
+                texts[1]._x = long_x - 0.1
+                texts[1]._y = long_y - 0.1
                         
             # Ensures that pie is drawn as a circle.
             ax.axis('equal')
@@ -1769,8 +1783,8 @@ class DataProcess():
         fig = plt.figure(figsize=(10, 5))
         gs = fig.add_gridspec(16, 3)
         ax1 = fig.add_subplot(gs[:, 0])
-        ax2 = fig.add_subplot(gs[3:13, 1])
-        ax3 = fig.add_subplot(gs[3:13, 2])
+        ax2 = fig.add_subplot(gs[3:14, 1])
+        ax3 = fig.add_subplot(gs[3:14, 2])
         
         # pie chart parameters
         indicator_type_ref = self.indicator_name_dict[indicator_type][0]
@@ -1805,6 +1819,7 @@ class DataProcess():
                         'linewidth':2, 
                         'antialiased':True},
             shadow=True, 
+            labeldistance=1.1,
             startangle=angle)
         
         # Reformat direction and percentage labels
@@ -1876,7 +1891,7 @@ class DataProcess():
         ax2.set_title('Sector Breakdown Long', fontsize=10)
         ax2.legend((list(non_zero_split.index[:-1])),
                    bbox_to_anchor= (0.5, 1),
-                   fontsize=8)
+                   fontsize=6)
         ax2.axis('off')
         ax2.set_xlim(- 2.5 * width, 2.5 * width)
         
@@ -1901,7 +1916,7 @@ class DataProcess():
         ax3.set_title('Sector Breakdown Short', fontsize=10)
         ax3.legend((list(non_zero_split.index[:-1])),
                    bbox_to_anchor= (0.5, 1),
-                   fontsize=8)
+                   fontsize=6)
         ax3.axis('off')
         ax3.set_xlim(- 2.5 * width, 2.5 * width)
         
