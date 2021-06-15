@@ -6,7 +6,8 @@
 ### The library provides methods to:
   - Extract historical OHLC data for commodities from Norgate Data and S&P 500 from Yahoo Finance.
   - Calculate technical indicators over a range of time periods and aggregate to determine trend strength. 
-  - Display charts of markets based on trend strength:
+  - Display charts of markets based on trend strength.
+
 
 &nbsp;
 
@@ -48,11 +49,19 @@ Import trend module and initialise a DataSet object
 
 ```
 import trendvisualizer.trend as trend
-mkt = trend.DataSetYahoo('2018-08-10', '2020-10-23')
+mkt = trend.DataSetYahoo()
 ```
 Extract market data, calculate indicators and trend strength
 ```
 mkt.prepyahoo()
+```
+Calculate indicators
+```
+mkt.generate_fields()
+```
+Calculate trend strength
+```
+mkt.generate_trend_strength()
 ```
 
 &nbsp;
@@ -61,17 +70,17 @@ mkt.prepyahoo()
 ```
 mkt.trendbarchart(mkts=20, trend='up')
 ```
-![comm_bar_up](images/comm_bar_up.png)
+![stock_bar_20_up](images/stock_bar_20_up.png)
 
 ```
-mkt.trendbarchart(mkts=20, trend='strong')
+mkt.trendbarchart(mkts=15, trend='down')
 ```
-![stock_bar_strong](images/stock_bar_strong.png)
+![comm_bar_15_down](images/comm_bar_15_down.png)
 
 ```
 mkt.trendbarchart(mkts=20, trend='neutral')
 ```
-![comm_bar_neutral](images/comm_bar_neutral.png)
+![stock_bar_20_neutral](images/stock_bar_20_neutral.png)
 
 &nbsp;
 
@@ -87,7 +96,7 @@ mkt.returnsgraph(days=120, mkts=10, trend='down')
 ```
 mkt.returnsgraph(days=250, mkts=10, trend='up')
 ```
-![stock_250d_up_line](images/stock_250d_up_line.png)
+![stock_250d_strong_line](images/stock_250d_strong_line.png)
 
 &nbsp;
 
@@ -97,10 +106,46 @@ mkt.marketchart(days=60, trend='up')
 ```
 ![comm_mkt_up_return_60d](images/comm_mkt_up_return_60.png)
 ```
-mkt.marketchart(days=120, trend='down', norm=False)
+mkt.marketchart(days=250, trend='strong', norm=True)
 ```
-![stock_mkt_down_price_120d](images/stock_mkt_down_price_120d.png)  
+![stock_mkt_strong_return_250d](images/stock_mkt_strong_return_250d.png)  
 ```
-mkt.marketchart(days=60, trend='strong', norm=False)
+mkt.marketchart(days=500, trend='down', chart_dimensions=(6, 4))
 ```
-![comm_mkt_price_strong_500](images/comm_mkt_price_strong_500.png)  
+![comm_mkt_down_return_500_24](images/comm_mkt_down_return_500_24.png)  
+
+&nbsp;
+
+####    Display Summary by Sector
+```
+mkt.summaryplot(absolute=False, sector_level=3, chart_type='swarm')
+```
+![comm_swarm_l3_rel](images/comm_swarm_l3_rel.png) 
+```
+mkt.summaryplot(absolute=True, sector_level=3, chart_type='swarm', dodge=True)
+```
+![comm_swarm_l3_abs_dodge](images/comm_swarm_l3_abs_dodge.png) 
+```
+mkt.summaryplot(sector_level=2, chart_type='strip')
+```
+![stock_strip_l2_abs](images/stock_strip_l2_abs.png) 
+
+&nbsp;
+
+####    Display Piechart Summary of an Indicator
+```
+mkt.pie_summary('adx')
+```
+![comm_pie_summ_adx](images/comm_pie_summ_adx.png) 
+
+&nbsp;
+
+####    Display Piechart Breakdown of an Indicator by Sector
+```
+mkt.pie_breakdown(indicator_type='adx', tenor=30, sector_level=2)
+```
+![stock_pie_break_adx_30_l2](images/stock_pie_break_adx_30_l2.png) 
+```
+mkt.pie_breakdown(indicator_type='ma_cross', tenor=(10, 30), sector_level=3)
+```
+![comm_pie_break_ma_30_l3](images/comm_pie_break_ma_30_l3.png)
