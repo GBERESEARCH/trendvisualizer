@@ -18,51 +18,31 @@ class TrendStrength():
 
     Parameters
     ----------
-    tickers : List
-        List of tickers, represented as strings.
-    start_date : Str
-        Start Date represented as a string in the
-        format 'YYYY-MM-DD'.
+    chart_dimensions : Tuple
+        Tuple of height, width for market chart.
+    chart_mkts : Int
+        Number of markets for market chart.
+    days : Int
+        The number of days price history.
     end_date : Str
         End Date represented as a string in the
         format 'YYYY-MM-DD'.
-    ticker_limit : Int, optional
-        Flag to select only the first n markets. The default
-        is None.
-    lookback : Int, optional
-        Number of days history if dates are not specified
-    norm : Bool
-        Whether the prices have been normalised.
-    trend : Str
-        The type / direction of the trend.
-    days : Int
-        The number of days price history.
-    chart_mkts : Int
-        Number of markets for market chart.
-
-    chart_dimensions : Tuple
-        Tuple of height, width for market chart.
-    mkts : Int
-        Number of markets for barchart or linegraph.
-    trend : Str
-        Flag to select most or least trending markets.
-        Select from: 'up' - strongly trending upwards,
-                     'down - strongly trending downwards,
-                     'neutral' - weak trend,
-                     'strong' - up and down trends,
-                     'all' - up down and weak trends
-        The default is 'strong' which displays both up-trending
-        and down-trending markets.
     indicator_type : Str
         The indicator to plot. Choose from 'adx', 'ma_cross',
         'price_cross', 'rsi', 'breakout'.
+    lookback : Int
+        Number of days history if dates are not specified
+    mkts : Int
+        Number of markets for barchart or linegraph.
+    norm : Bool
+        Whether the prices have been normalised.
     pie_tenor : Int / Tuple
         The time period of the indicator. For the Moving Average
         crossover this is a tuple from the following pairs: (5, 200),
         (10, 30), (10, 50), (20, 50), (30, 100), (50, 200). For the
         other indicators this is an integer from the list: 10, 20, 30,
         50, 100, 200.
-    sector_level : Int, optional
+    sector_level : Int
         The level of granularity of the assets.
         For Commodities the choices are:
             1:'Asset Class',
@@ -76,6 +56,26 @@ class TrendStrength():
             3:'Industry',
             4:'Sub-Industry',
             5:'Security'
+    source : Str
+        The source of the market data. 'norgate' or 'yahoo'. The default is
+        'norgate'.
+    start_date : Str
+        Start Date represented as a string in the
+        format 'YYYY-MM-DD'.
+    tickers : List
+        List of tickers, represented as strings.
+    ticker_limit : Int
+        Flag to select only the first n markets. The default
+        is None.
+    trend : Str
+        Flag to select most or least trending markets.
+        Select from: 'up' - strongly trending upwards,
+                     'down - strongly trending downwards,
+                     'neutral' - weak trend,
+                     'strong' - up and down trends,
+                     'all' - up down and weak trends
+        The default is 'strong' which displays both up-trending
+        and down-trending markets.
 
     Returns
     -------
