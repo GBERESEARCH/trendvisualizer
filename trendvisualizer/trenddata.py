@@ -449,3 +449,123 @@ class Fields():
         barometer['Trend'] = 'Trend'
 
         return barometer
+
+
+class TickerList():
+    """
+    Generate list of strongly trending securities
+
+    """
+
+    @staticmethod
+    def futures_split(tables):
+        """
+        Split the continuous futures from the rest of the norgate data
+
+        Parameters
+        ----------
+        tables : Dict
+            Dictionary of key tables.
+
+        Returns
+        -------
+        tables : Dict
+            Dictionary of key tables updated for futures_ticker_dict and
+            futures_barometer.
+
+        """
+        tables['futures_ticker_dict'] = {
+            k:v for k,v in tables['raw_ticker_dict'].items()
+            if '_ccb' in k}
+        tables['futures_barometer'] = tables['barometer'][
+            tables['barometer']['Ticker'].str.lower().str.contains('_ccb')]
+
+        return tables
+
+
+    @staticmethod
+    def _filter_barometer(barometer, params, norgate_source):
+        """
+        Sort and filter the top trending securities
+
+        Parameters
+        ----------
+        barometer : DataFrame
+            DataFrame showing trend strength for each ticker.
+        norgate_source : Bool
+            Whether the market data source is norgate or yahoo.
+
+        Returns
+        -------
+        filtered_barometer : DataFrame
+            DataFrame showing the top trending securities.
+
+        """
+        data = barometer.sort_values(
+            by=['Absolute Trend Strength'],
+            ascending=False)[:params['top_trend_params']['initial_size']]
+        filtered_barometer = pd.DataFrame()
+        if norgate_source:
+            sectors = set(barometer['Mid Sector'])
+            data = data.sort_values(
+                by=['Mid Sector', 'Absolute Trend Strength'],
+                ascending=False)
+        else:
+            sectors = set(barometer['Sector'])
+            data = data.sort_values(
+                by=['Sector', 'Absolute Trend Strength'], ascending=False)
+
+        for sector in sectors:
+            if norgate_source:
+                frame = data[data['Mid Sector']==sector]
+            else:
+                frame = data[data['Sector']==sector]
+
+            if len(frame) > 0:
+                if norgate_source:
+                    frame = frame.drop_duplicates(subset='Underlying')
+                else:
+                    frame = frame.drop_duplicates(subset='Security')
+
+                if len(frame) > params['top_trend_params']['max_per_sector']:
+                    frame = frame[:params['top_trend_params'][
+                        'max_per_sector']]
+                filtered_barometer = pd.concat([filtered_barometer, frame])
+
+        filtered_barometer = filtered_barometer.sort_values(
+            by=['Absolute Trend Strength'],
+            ascending=False)[:params['top_trend_params']['final_size']]
+
+        return filtered_barometer
+
+
+    @classmethod
+    def top_trend_list(cls, tables, params, norgate_source):
+        """
+        Prepare list of top trending securities.
+
+        Parameters
+        ----------
+        barometer : DataFrame
+            DataFrame showing trend strength for each ticker.
+        norgate_source : Bool
+            Whether the market data source is norgate or yahoo.
+
+        Returns
+        -------
+        ticker_list : List
+            List of top trending securities.
+        tables : Dict
+            Dictionary of key tables updated for the filtered barometer.
+
+        """
+        tables['filtered_barometer'] = cls._filter_barometer(
+            tables['barometer'], params, norgate_source)
+        ticker_list = []
+        for ticker in tables['filtered_barometer']['Ticker']:
+            if norgate_source:
+                ticker = '&'+ticker.upper()
+                ticker = ticker.replace('&C_','&')
+            ticker_list.append(ticker)
+
+        return ticker_list, tables

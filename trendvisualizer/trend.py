@@ -8,7 +8,7 @@ from trendvisualizer.chart_display import Graphs
 from trendvisualizer.pie_charts import PieCharts
 from trendvisualizer.sector_mappings import sectmap
 from trendvisualizer.trend_params import trend_params_dict
-from trendvisualizer.trenddata import Fields
+from trendvisualizer.trenddata import Fields, TickerList
 from trendvisualizer.marketdata import NorgateExtract, YahooExtract, MktUtils
 
 
@@ -112,9 +112,13 @@ class TrendStrength():
                 params=params, tables=tables, mappings=mappings)
 
         # Calculate the technical indicator fields and Trend Strength table
-        tables = self.trendcalc(params, tables, mappings)
+        tables = self.trendcalc(
+            params=params, tables=tables, mappings=mappings)
 
-        self.tables = tables
+        # Generate list of top trending securities
+        self.trend_ticker_list, self.tables = self.top_trend_tickers(
+            params=params, tables=tables)
+
         self.params = params
         self.mappings = mappings
 
@@ -270,6 +274,40 @@ class TrendStrength():
             sector_mappings_df=mappings['sector_mappings_df'])
 
         return tables
+
+
+    @staticmethod
+    def top_trend_tickers(params, tables):
+        """
+        Prepare list of top trending securities.
+
+        Parameters
+        ----------
+        params : Dict
+            Dictionary of key parameters.
+        tables : Dict
+            Dictionary of key tables.
+
+        Returns
+        -------
+        ticker_list : List
+                List of top trending securities.
+        tables : Dict
+            Dictionary of key tables.
+
+        """
+        # Generate list of top trending securities
+        if params['source'] == 'norgate':
+            # Split the continuous futures data
+            tables = TickerList.futures_split(tables)
+
+            ticker_list, tables = TickerList.top_trend_list(
+                tables, params, norgate_source=True)
+        else:
+            ticker_list, tables = TickerList.top_trend_list(
+                tables, params, norgate_source=False)
+
+        return ticker_list, tables
 
 
     def chart(self, chart_type, **kwargs):
