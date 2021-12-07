@@ -483,8 +483,8 @@ class TickerList():
         return tables
 
 
-    @staticmethod
-    def _filter_barometer(barometer, params, norgate_source):
+    @classmethod
+    def _filter_barometer(cls, tables, params, norgate_source):
         """
         Sort and filter the top trending securities
 
@@ -501,10 +501,19 @@ class TickerList():
             DataFrame showing the top trending securities.
 
         """
+        if norgate_source:
+            # Split the continuous futures data
+            tables = cls.futures_split(tables)
+            barometer = tables['futures_barometer']
+        else:
+            barometer = tables['barometer']
+
         data = barometer.sort_values(
             by=['Absolute Trend Strength'],
             ascending=False)[:params['top_trend_params']['initial_size']]
+
         filtered_barometer = pd.DataFrame()
+
         if norgate_source:
             sectors = set(barometer['Mid Sector'])
             data = data.sort_values(
@@ -560,7 +569,7 @@ class TickerList():
 
         """
         tables['filtered_barometer'] = cls._filter_barometer(
-            tables['barometer'], params, norgate_source)
+            tables, params, norgate_source)
         ticker_list = []
         for ticker in tables['filtered_barometer']['Ticker']:
             if norgate_source:

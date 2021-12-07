@@ -298,14 +298,13 @@ class TrendStrength():
         """
         # Generate list of top trending securities
         if params['source'] == 'norgate':
-            # Split the continuous futures data
-            tables = TickerList.futures_split(tables)
-
-            ticker_list, tables = TickerList.top_trend_list(
-                tables, params, norgate_source=True)
+            norgate_source=True
         else:
-            ticker_list, tables = TickerList.top_trend_list(
-                tables, params, norgate_source=False)
+            norgate_source=False
+
+        ticker_list, tables = TickerList.top_trend_list(
+            tables, params, norgate_source=norgate_source)
+
 
         return ticker_list, tables
 
