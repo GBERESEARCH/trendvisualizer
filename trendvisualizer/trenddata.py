@@ -451,7 +451,7 @@ class Fields():
         return barometer
 
 
-class TickerList():
+class TrendRank():
     """
     Generate list of strongly trending securities
 
@@ -543,13 +543,13 @@ class TickerList():
 
         filtered_barometer = filtered_barometer.sort_values(
             by=['Absolute Trend Strength'],
-            ascending=False)[:params['top_trend_params']['final_size']]
+            ascending=False).reset_index().drop(['index'], axis=1)
 
         return filtered_barometer
 
 
     @classmethod
-    def top_trend_list(cls, tables, params, norgate_source):
+    def top_trend_calc(cls, tables, params, norgate_source):
         """
         Prepare list of top trending securities.
 
@@ -562,19 +562,36 @@ class TickerList():
 
         Returns
         -------
-        ticker_list : List
-            List of top trending securities.
+        top_trends : Dict
+            Dictionary containing list and dictionary of most strongly
+            trending assets
+            ticker_dict : Dict
+                Dict of top trending securities.
+            ticker_list : List
+                List of top trending securities.
         tables : Dict
             Dictionary of key tables updated for the filtered barometer.
 
         """
+        top_trends = {}
+
         tables['filtered_barometer'] = cls._filter_barometer(
             tables, params, norgate_source)
-        ticker_list = []
+
+        top_trends['top_ticker_dict'] = {}
+        top_trends['top_ticker_list'] = []
         for ticker in tables['filtered_barometer']['Ticker']:
             if norgate_source:
-                ticker = '&'+ticker.upper()
-                ticker = ticker.replace('&C_','&')
-            ticker_list.append(ticker)
+                ticker_mod = '&'+ticker.upper()
+                ticker_mod = ticker_mod.replace('&C_','&')
+            else:
+                ticker_mod = ticker
+            top_trends['top_ticker_dict'][tables['filtered_barometer'].index[
+                tables['filtered_barometer'][
+                    'Ticker'] == ticker][0] + 1] = ticker_mod
 
-        return ticker_list, tables
+        for rank, ticker in top_trends['top_ticker_dict'].items():
+            if rank < params['top_trend_params']['final_size'] + 1:
+                top_trends['top_ticker_list'].append(ticker)
+
+        return top_trends, tables

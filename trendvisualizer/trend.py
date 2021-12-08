@@ -8,7 +8,7 @@ from trendvisualizer.chart_display import Graphs
 from trendvisualizer.pie_charts import PieCharts
 from trendvisualizer.sector_mappings import sectmap
 from trendvisualizer.trend_params import trend_params_dict
-from trendvisualizer.trenddata import Fields, TickerList
+from trendvisualizer.trenddata import Fields, TrendRank
 from trendvisualizer.marketdata import NorgateExtract, YahooExtract, MktUtils
 
 
@@ -98,27 +98,26 @@ class TrendStrength():
         # Initialise system parameters
         params = self._init_params(inputs)
 
-        # Dictionary to store data tables
-        tables = {}
-
         # Import the data from Norgate Data
         if params['source'] == 'norgate':
             params, tables, mappings = self.prepnorgate(
-                 params=params, tables=tables, mappings=mappings)
+                 params=params, mappings=mappings)
 
         # Or from Yahoo Finance
         elif params['source'] == 'yahoo':
             params, tables, mappings = self.prepyahoo(
-                params=params, tables=tables, mappings=mappings)
+                params=params, mappings=mappings)
 
         # Calculate the technical indicator fields and Trend Strength table
         tables = self.trendcalc(
             params=params, tables=tables, mappings=mappings)
 
         # Generate list of top trending securities
-        self.trend_ticker_list, self.tables = self.top_trend_tickers(
+        top_trends, tables = self.top_trend_tickers(
             params=params, tables=tables)
 
+        self.top_trends = top_trends
+        self.tables = tables
         self.params = params
         self.mappings = mappings
 
@@ -150,7 +149,7 @@ class TrendStrength():
 
 
     @staticmethod
-    def prepnorgate(params, tables, mappings):
+    def prepnorgate(params, mappings):
         """
         Create dataframes of prices, extracting data from Norgate Data.
 
@@ -158,8 +157,6 @@ class TrendStrength():
         ----------
         params : Dict
             Dictionary of key parameters.
-        tables : Dict
-            Dictionary of key tables.
         mappings : Dict
             Dictionary of sector mappings.
 
@@ -186,6 +183,9 @@ class TrendStrength():
         # Set the start and end dates
         params = MktUtils.date_set(params)
 
+        # Dictionary to store data tables
+        tables = {}
+
         # Create dictionaries of DataFrames of prices and ticker names
         params, tables, mappings = NorgateExtract.importnorgate(
             params=params, tables=tables, mappings=mappings)
@@ -197,7 +197,7 @@ class TrendStrength():
 
 
     @staticmethod
-    def prepyahoo(params, tables, mappings):
+    def prepyahoo(params, mappings):
         """
         Create dataframes of prices, extracting data from Yahoo Finance.
 
@@ -205,8 +205,6 @@ class TrendStrength():
         ----------
         params : Dict
             Dictionary of key parameters.
-        tables : Dict
-            Dictionary of key tables.
         mappings : Dict
             Dictionary of sector mappings.
 
@@ -234,6 +232,9 @@ class TrendStrength():
 
         # Set the start and end dates
         params = MktUtils.date_set(params)
+
+        # Dictionary to store data tables
+        tables = {}
 
         # Create dictionaries of DataFrames of prices and ticker names
         params, tables = YahooExtract.importyahoo(params, tables)
@@ -302,11 +303,10 @@ class TrendStrength():
         else:
             norgate_source=False
 
-        ticker_list, tables = TickerList.top_trend_list(
+        top_trends, tables = TrendRank.top_trend_calc(
             tables, params, norgate_source=norgate_source)
 
-
-        return ticker_list, tables
+        return top_trends, tables
 
 
     def chart(self, chart_type, **kwargs):
