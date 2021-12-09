@@ -588,7 +588,9 @@ class TrendRank():
                 ticker_mod = ticker
             top_trends['top_ticker_dict'][tables['filtered_barometer'].index[
                 tables['filtered_barometer'][
-                    'Ticker'] == ticker][0] + 1] = ticker_mod
+                    'Ticker'] == ticker][0] + 1] = (
+                        ticker_mod, tables['raw_ticker_dict'][ticker][
+                            ['Open', 'High', 'Low', 'Close']])
 
         for rank, ticker in top_trends['top_ticker_dict'].items():
             if rank < params['top_trend_params']['final_size'] + 1:
