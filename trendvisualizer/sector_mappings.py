@@ -35,6 +35,8 @@ sectmap = {
         '&FGBM_CCB':('Bonds','Government Bonds','Government Bonds','Government Bonds', 'Euro-Bobl - 5 Yr'), # Euro-Bobl - 5 Yr
         '&FGBS_CCB':('Bonds','Government Bonds','Government Bonds','Government Bonds', 'Euro-Schatz - 2 Yr'), # Euro-Schatz - 2 Yr
         '&FGBX_CCB':('Bonds','Government Bonds','Government Bonds','Government Bonds', 'Euro-Buxl - 30 Yr'), # Euro-Buxl - 30 Yr
+        '&FOAT_CCB':('Interest Rates', 'Interest Rates', 'Interest Rates', 'Interest Rates', 'Euro-OAT Continuous Contract'), # Euro-OAT Continuous Contract
+        '&FOAT9_CCB':('Interest Rates', 'Interest Rates', 'Interest Rates', 'Interest Rates', 'Euro-OAT(L) Continuous Contract'), # Euro-OAT(L) Continuous Contract
         '&FSMI_CCB':('Equity Indices', 'Equity Indices','Equity Indices','Equity Indices', 'Swiss Market Index'), # Swiss Market Index
         '&FTDX_CCB':('Equity Indices', 'Equity Indices','Equity Indices','Equity Indices', 'TecDAX'), # TecDAX
         '&GAS_CCB':('Commodities', 'Energy', 'Energy', 'Energy', 'Gas Oil'), # Gas Oil
@@ -83,6 +85,7 @@ sectmap = {
         '&SJB_CCB':('Bonds','Government Bonds','Government Bonds','Government Bonds', 'Japanese Govt Bond - Mini'), # Japanese Govt Bond - Mini
         '&SNK_CCB':('Equity Indices', 'Equity Indices','Equity Indices','Equity Indices', 'Nikkei 225'), # Nikkei 225 (SGX)
         '&SP_CCB':('Equity Indices', 'Equity Indices','Equity Indices','Equity Indices', 'S&P 500'), # S&P 500
+        '&SR3_CCB':('Interest Rates', 'Interest Rates', 'Interest Rates', 'Interest Rates', '3M SOFR Continuous Contract'), # 3M SOFR Continuous Contract
         '&SSG_CCB':('Equity Indices', 'Equity Indices','Equity Indices','Equity Indices', 'MSCI Singapore Index'), # MSCI Singapore Index
         '&STW_CCB':('Equity Indices', 'Equity Indices','Equity Indices','Equity Indices', 'MSCI Taiwan Index'), # MSCI Taiwan Index, Discontinued
         '&SXF_CCB':('Equity Indices', 'Equity Indices','Equity Indices','Equity Indices', 'S&P/TSX 60 Index'), # S&P/TSX 60 Index
@@ -114,6 +117,121 @@ sectmap = {
         '&ZS_CCB':('Commodities','Diversified Agriculture', 'Agriculture', 'Grains', 'Soybeans'), # Soybeans
         '&ZT_CCB':('Bonds','Government Bonds','Government Bonds','Government Bonds', '2-Year US T-Note'), # 2-Year US T-Note
         '&ZW_CCB':('Commodities','Diversified Agriculture', 'Agriculture', 'Grains', 'Chicago SRW Wheat'), # Chicago SRW Wheat
+        '&6A':('Currencies', 'G10 Currencies', 'G10 Currencies', 'G10 Currencies', 'AUD'), # AUD
+        '&6B':('Currencies', 'G10 Currencies', 'G10 Currencies', 'G10 Currencies', 'GBP'), # GBP
+        '&6C':('Currencies', 'G10 Currencies', 'G10 Currencies', 'G10 Currencies', 'CAD'), # CAD
+        '&6E':('Currencies', 'G10 Currencies', 'G10 Currencies', 'G10 Currencies', 'EUR'), # EUR
+        '&6J':('Currencies', 'G10 Currencies', 'G10 Currencies', 'G10 Currencies', 'JPY'), # JPY
+        '&6M':('Currencies', 'EM Currencies', 'EM Currencies', 'EM Currencies', 'MXN'), # MXN
+        '&6N':('Currencies', 'G10 Currencies', 'G10 Currencies', 'G10 Currencies', 'NZD'), # NZD
+        '&6S':('Currencies', 'G10 Currencies', 'G10 Currencies', 'G10 Currencies', 'CHF'), # CHF
+        '&AFB':('Commodities','Diversified Agriculture', 'Agriculture', 'Grains', 'Eastern Australia Feed Barley'), # Eastern Australia Feed Barley
+        '&AWM':('Commodities','Diversified Agriculture', 'Agriculture', 'Grains', 'Eastern Australia Wheat'), # Eastern Australia Wheat
+        '&BAX':('Interest Rates', 'Interest Rates', 'Interest Rates', 'Interest Rates', 'Canadian Bankers Acceptance'), # Canadian Bankers Acceptance
+        '&BRN':('Commodities', 'Energy', 'Petroleum', 'Petroleum', 'Brent Crude Oil'), # Brent Crude Oil
+        '&BTC':('Currencies', 'Crypto Currencies', 'Crypto Currencies', 'Crypto Currencies', 'Bitcoin'), # Bitcoin
+        '&CC':('Commodities','Diversified Agriculture', 'Agriculture', 'Softs', 'Cocoa'), # Cocoa
+        '&CGB':('Bonds','Government Bonds','Government Bonds','Government Bonds', 'Canadian 10y'), # Canadian 10 Yr Govt Bond
+        '&CL':('Commodities', 'Energy', 'Petroleum', 'Petroleum', 'Crude Oil - Light Sweet'), # Crude Oil - Light Sweet
+        '&CT':('Commodities','Diversified Agriculture', 'Agriculture', 'Softs', 'Cotton #2'), # Cotton #2
+        '&DC':('Commodities','Diversified Agriculture', 'Agriculture', 'Softs', 'Milk - Class III'), # Milk - Class III
+        '&DX':('Currencies', 'G10 Currencies', 'G10 Currencies', 'G10 Currencies', 'Benchmark'), # US Dollar Index
+        '&EH':('Commodities', 'Energy', 'Petroleum', 'Petroleum', 'Ethanol'), # Ethanol
+        '&EMD':('Equity Indices', 'Equity Indices','Equity Indices','Equity Indices', 'S&P MidCap 400 E-mini'), # S&P MidCap 400 E-mini
+        '&ES':('Equity Indices', 'Equity Indices','Equity Indices','Equity Indices', 'S&P 500 E-mini'), # S&P 500 E-mini
+        '&EUA':('Commodities', 'Energy', 'Energy', 'Energy', 'EUA (Carbon Emissions)'), # EUA (Carbon Emissions)
+        '&FBTP':('Bonds','Government Bonds','Government Bonds','Government Bonds', 'Euro-BTP Long Term'), # Euro-BTP Long Term
+        '&FCE':('Equity Indices', 'Equity Indices','Equity Indices','Equity Indices', 'CAC 40'), # CAC 40
+        '&FDAX':('Equity Indices', 'Equity Indices','Equity Indices','Equity Indices', 'DAX'), # DAX
+        '&FDAX9':('Equity Indices', 'Equity Indices','Equity Indices','Equity Indices', 'DAX'), # DAX, Last in Close field
+        '&FESX':('Equity Indices', 'Equity Indices','Equity Indices','Equity Indices', 'EURO STOXX 50'), # EURO STOXX 50
+        '&FESX9':('Equity Indices', 'Equity Indices','Equity Indices','Equity Indices', 'EURO STOXX 50'), # EURO STOXX 50, Last in Close field
+        '&FGBL':('Bonds','Government Bonds','Government Bonds','Government Bonds', 'Euro-Bund - 10 Yr'), # Euro-Bund - 10 Yr
+        '&FGBM':('Bonds','Government Bonds','Government Bonds','Government Bonds', 'Euro-Bobl - 5 Yr'), # Euro-Bobl - 5 Yr
+        '&FGBS':('Bonds','Government Bonds','Government Bonds','Government Bonds', 'Euro-Schatz - 2 Yr'), # Euro-Schatz - 2 Yr
+        '&FGBX':('Bonds','Government Bonds','Government Bonds','Government Bonds', 'Euro-Buxl - 30 Yr'), # Euro-Buxl - 30 Yr
+        '&FOAT':('Interest Rates', 'Interest Rates', 'Interest Rates', 'Interest Rates', 'Euro-OAT Continuous Contract'), # Euro-OAT Continuous Contract
+        '&FOAT9':('Interest Rates', 'Interest Rates', 'Interest Rates', 'Interest Rates', 'Euro-OAT(L) Continuous Contract'), # Euro-OAT(L) Continuous Contract
+        '&FSMI':('Equity Indices', 'Equity Indices','Equity Indices','Equity Indices', 'Swiss Market Index'), # Swiss Market Index
+        '&FTDX':('Equity Indices', 'Equity Indices','Equity Indices','Equity Indices', 'TecDAX'), # TecDAX
+        '&GAS':('Commodities', 'Energy', 'Energy', 'Energy', 'Gas Oil'), # Gas Oil
+        '&GC':('Commodities', 'Metals', 'Precious Metals', 'Precious Metals', 'Gold'), # Gold
+        '&GD':('Commodities', 'Commodities', 'Commodities', 'Commodities', 'Benchmark'), # GS&P GSCI
+        '&GE':('Interest Rates', 'Interest Rates', 'Interest Rates', 'Interest Rates', 'Eurodollar'), # Eurodollar
+        '&GF':('Commodities','Diversified Agriculture', 'Livestock', 'Livestock', 'Feeder Cattle'), # Feeder Cattle
+        '&GWM':('Commodities', 'Energy', 'Energy', 'Energy', 'UK Natural Gas'), # UK Natural Gas
+        '&HE':('Commodities','Diversified Agriculture', 'Livestock', 'Livestock', 'Lean Hogs'), # Lean Hogs
+        '&HG':('Commodities', 'Metals', 'Industrial Metals', 'Industrial Metals', 'Copper'), # Copper
+        '&HO':('Commodities', 'Energy', 'Petroleum', 'Petroleum', 'NY Harbor ULSD'), # NY Harbor ULSD
+        '&HSI':('Equity Indices', 'Equity Indices','Equity Indices','Equity Indices', 'Hang Seng Index'), # Hang Seng Index
+        '&HTW':('Equity Indices', 'Equity Indices','Equity Indices','Equity Indices', 'MSCI Taiwan Index'), # MSCI Taiwan Index
+        '&KC':('Commodities','Diversified Agriculture', 'Agriculture', 'Softs', 'Coffee C'), # Coffee C
+        '&KE':('Commodities','Diversified Agriculture', 'Agriculture', 'Grains', 'KC HRW Wheat'), # KC HRW Wheat
+        '&KOS':('Equity Indices', 'Equity Indices','Equity Indices','Equity Indices', 'KOSPI 200'), # KOSPI 200
+        '&LBS':('Commodities','Diversified Agriculture', 'Agriculture', 'Softs', 'Lumber'), # Lumber
+        '&LCC':('Commodities','Diversified Agriculture', 'Agriculture', 'Softs', 'London Cocoa'), # London Cocoa
+        '&LE':('Commodities','Diversified Agriculture', 'Livestock', 'Livestock', 'Live Cattle'), # Live Cattle
+        '&LES':('Interest Rates', 'Interest Rates', 'Interest Rates', 'Interest Rates', 'Euro Swiss'), # Euro Swiss
+        '&LEU':('Interest Rates', 'Interest Rates', 'Interest Rates', 'Interest Rates', 'Euribor'), # Euribor
+        '&LEU9':('Interest Rates', 'Interest Rates', 'Interest Rates', 'Interest Rates', 'Euribor'), # Euribor, Official Close
+        '&LFT':('Equity Indices', 'Equity Indices','Equity Indices','Equity Indices', 'FTSE 100'), # FTSE 100
+        '&LFT9':('Equity Indices', 'Equity Indices','Equity Indices','Equity Indices', 'FTSE 100'), # FTSE 100, Official Close
+        '&LLG':('Bonds','Government Bonds','Government Bonds','Government Bonds', 'Long Gilt'), # Long Gilt
+        '&LRC':('Commodities','Diversified Agriculture', 'Agriculture', 'Softs', 'Robusta Coffee'), # Robusta Coffee
+        '&LSS':('Interest Rates', 'Interest Rates', 'Interest Rates', 'Interest Rates', 'Short Sterling'), # Short Sterling
+        '&LSU':('Commodities','Diversified Agriculture', 'Agriculture', 'Softs', 'White Sugar'), # White Sugar
+        '&LWB':('Commodities','Diversified Agriculture', 'Agriculture', 'Grains', 'Feed Wheat'), # Feed Wheat
+        '&MHI':('Equity Indices', 'Equity Indices','Equity Indices','Equity Indices', 'Hang Seng Index'), # Hang Seng Index - Mini
+        '&MWE':('Commodities','Diversified Agriculture', 'Agriculture', 'Grains', 'Hard Red Spring Wheat'), # Hard Red Spring Wheat
+        '&NG':('Commodities', 'Energy', 'Energy', 'Energy', 'Henry Hub Natural Gas'), # Henry Hub Natural Gas
+        '&NIY':('Equity Indices', 'Equity Indices','Equity Indices','Equity Indices', 'Nikkei 225'), # Nikkei 225 Yen
+        '&NKD':('Equity Indices', 'Equity Indices','Equity Indices','Equity Indices', 'Nikkei 225'), # Nikkei 225 Dollar
+        '&NQ':('Equity Indices', 'Equity Indices','Equity Indices','Equity Indices', 'Nasdaq-100 - E-mini'), # Nasdaq-100 - E-mini
+        '&OJ':('Commodities','Diversified Agriculture', 'Agriculture', 'Softs', 'Frozen Concentrated Orange Juice'), # Frozen Concentrated Orange Juice
+        '&PA':('Commodities', 'Metals', 'Precious Metals', 'Precious Metals', 'Palladium'), # Palladium
+        '&PL':('Commodities', 'Metals', 'Precious Metals', 'Precious Metals', 'Platinum'), # Platinum
+        '&RB':('Commodities', 'Energy', 'Petroleum', 'Petroleum', 'RBOB Gasoline'), # RBOB Gasoline
+        '&RS':('Commodities','Diversified Agriculture', 'Agriculture', 'Grains', 'Canola'), # Canola
+        '&RTY':('Equity Indices', 'Equity Indices','Equity Indices','Equity Indices', 'Russell 2000 - E-mini'), # Russell 2000 - E-mini
+        '&SB':('Commodities','Diversified Agriculture', 'Agriculture', 'Softs', 'Sugar No. 11'), # Sugar No. 11
+        '&SCN':('Equity Indices', 'Equity Indices','Equity Indices','Equity Indices', 'FTSE China A50 Index'), # FTSE China A50 Index
+        '&SI':('Commodities', 'Metals', 'Precious Metals', 'Precious Metals', 'Silver'), # Silver
+        '&SIN':('Equity Indices', 'Equity Indices','Equity Indices','Equity Indices', 'SGX Nifty 50 Index'), # SGX Nifty 50 Index
+        '&SJB':('Bonds','Government Bonds','Government Bonds','Government Bonds', 'Japanese Govt Bond - Mini'), # Japanese Govt Bond - Mini
+        '&SNK':('Equity Indices', 'Equity Indices','Equity Indices','Equity Indices', 'Nikkei 225'), # Nikkei 225 (SGX)
+        '&SP':('Equity Indices', 'Equity Indices','Equity Indices','Equity Indices', 'S&P 500'), # S&P 500
+        '&SR3':('Interest Rates', 'Interest Rates', 'Interest Rates', 'Interest Rates', '3M SOFR Continuous Contract'), # 3M SOFR Continuous Contract
+        '&SSG':('Equity Indices', 'Equity Indices','Equity Indices','Equity Indices', 'MSCI Singapore Index'), # MSCI Singapore Index
+        '&STW':('Equity Indices', 'Equity Indices','Equity Indices','Equity Indices', 'MSCI Taiwan Index'), # MSCI Taiwan Index, Discontinued
+        '&SXF':('Equity Indices', 'Equity Indices','Equity Indices','Equity Indices', 'S&P/TSX 60 Index'), # S&P/TSX 60 Index
+        '&TN':('Bonds','Government Bonds','Government Bonds','Government Bonds', 'Ultra 10 Year U.S. T-Note'), # Ultra 10 Year U.S. T-Note
+        '&UB':('Bonds','Government Bonds','Government Bonds','Government Bonds', 'Ultra U.S. T-Bond'), # Ultra U.S. T-Bond
+        '&VX':('Volatility', 'Volatility', 'Volatility', 'Volatility', 'Cboe Volatility Index'), # Cboe Volatility Index
+        '&WBS':('Commodities', 'Energy', 'Petroleum', 'Petroleum', 'WTI Crude Oil'), # WTI Crude Oil
+        '&YAP':('Equity Indices', 'Equity Indices','Equity Indices','Equity Indices', 'ASX SPI 200'), # ASX SPI 200
+        '&YAP4':('Equity Indices', 'Equity Indices','Equity Indices','Equity Indices', 'ASX SPI 200'), # ASX SPI 200, Day
+        '&YAP10':('Equity Indices', 'Equity Indices','Equity Indices','Equity Indices', 'ASX SPI 200'), # ASX SPI 200, Night
+        '&YG':('Commodities', 'Metals', 'Precious Metals', 'Precious Metals', 'Gold - Mini'), # Gold - Mini
+        '&YI':('Commodities', 'Metals', 'Precious Metals', 'Precious Metals', 'Silver - Mini'), # Silver - Mini
+        '&YIB':('Interest Rates', 'Interest Rates', 'Interest Rates', 'Interest Rates', 'ASX 30 Day Interbank Cash Rate'), # ASX 30 Day Interbank Cash Rate
+        '&YIR':('Interest Rates', 'Interest Rates', 'Interest Rates', 'Interest Rates', 'ASX 90 Day Bank Accepted Bills'), # ASX 90 Day Bank Accepted Bills
+        '&YM':('Equity Indices', 'Equity Indices','Equity Indices','Equity Indices', 'E-mini Dow'), # E-mini Dow
+        '&YXT':('Bonds','Government Bonds','Government Bonds','Government Bonds', 'ASX 10 Year Treasury Bond'), # ASX 10 Year Treasury Bond
+        '&YYT':('Bonds','Government Bonds','Government Bonds','Government Bonds', 'ASX 3 Year Treasury Bond'), # ASX 3 Year Treasury Bond
+        '&ZB':('Bonds','Government Bonds','Government Bonds','Government Bonds', 'U.S. T-Bond'), # U.S. T-Bond
+        '&ZC':('Commodities','Diversified Agriculture', 'Agriculture', 'Grains', 'Corn'), # Corn
+        '&ZF':('Bonds','Government Bonds','Government Bonds','Government Bonds', '5-Year US T-Note'), # 5-Year US T-Note
+        '&ZG':('Commodities', 'Metals', 'Precious Metals', 'Precious Metals', 'Gold'), # Gold 100oz, Discountinued
+        '&ZI':('Commodities', 'Metals', 'Precious Metals', 'Precious Metals', 'Silver'), # Silver 5000oz, Discontinued
+        '&ZL':('Commodities','Diversified Agriculture', 'Agriculture', 'Grains', 'Soybean Oil'), # Soybean Oil
+        '&ZM':('Commodities','Diversified Agriculture', 'Agriculture', 'Grains', 'Soybean Meal'), # Soybean Meal
+        '&ZN':('Bonds','Government Bonds','Government Bonds','Government Bonds', '10-Year US T-Note'), # 10-Year US T-Note
+        '&ZO':('Commodities','Diversified Agriculture', 'Agriculture', 'Grains', 'Oats'), # Oats
+        '&ZQ':('Interest Rates', 'Interest Rates', 'Interest Rates', 'Interest Rates', '30 Day Federal Funds'), # 30 Day Federal Funds
+        '&ZR':('Commodities','Diversified Agriculture', 'Agriculture', 'Grains', 'Rough Rice'), # Rough Rice
+        '&ZS':('Commodities','Diversified Agriculture', 'Agriculture', 'Grains', 'Soybeans'), # Soybeans
+        '&ZT':('Bonds','Government Bonds','Government Bonds','Government Bonds', '2-Year US T-Note'), # 2-Year US T-Note
+        '&ZW':('Commodities','Diversified Agriculture', 'Agriculture', 'Grains', 'Chicago SRW Wheat'), # Chicago SRW Wheat
         '#GSR':('Commodities', 'Metals', 'Precious Metals', 'Precious Metals', 'Benchmark'), # Gold/Silver Ratio
         '$BCOM':('Commodities', 'Commodities', 'Commodities', 'Commodities', 'Benchmark'), # Bloomberg Commodity Index
         '$BCOMAG':('Commodities','Diversified Agriculture', 'Agriculture', 'Agriculture', 'Benchmark'), # Bloomberg Agriculture Sub-Index
@@ -142,6 +260,8 @@ sectmap = {
         '$RBARCPU':('Commodities', 'Diversified Agriculture', 'Diversified Agriculture', 'Diversified Agriculture', 'Benchmark'), # RBA Rural Commodity Prices Sub-Index (USD)
         '$SPGSCI':('Commodities', 'Commodities', 'Commodities', 'Commodities', 'Benchmark'), # S&P GSCI Spot Index
         '$SPGSCITR':('Commodities', 'Commodities', 'Commodities', 'Commodities', 'Benchmark'), # S&P GSCI Total Return Index
+        '$SPGSEW':('Commodities', 'Commodities', 'Commodities', 'Commodities', 'Benchmark'), # S&P GSCI Select Equal Weight Spot Index
+        '$SPGSEWTR':('Commodities', 'Commodities', 'Commodities', 'Commodities', 'Benchmark'), # S&P GSCI Select Equal Weight Total Return Index
         '@AA':('Commodities', 'Metals', 'Industrial Metals', 'Industrial Metals', 'Aluminium'), # Aluminium Alloy - LME Official Cash
         '@AA03S':('Commodities', 'Metals', 'Industrial Metals', 'Industrial Metals', 'Aluminium'), # Aluminium Alloy - LME 03 Months Seller
         '@AAWS':('Commodities', 'Metals', 'Industrial Metals', 'Industrial Metals', 'Aluminium'), # Aluminium Alloy - LME Warehouse Opening Stocks

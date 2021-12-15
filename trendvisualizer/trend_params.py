@@ -185,6 +185,7 @@ trend_params_dict = {
         'marker':'^',
         'violin':False,
         'source':'norgate',
+        'tickers_adjusted':False,
         'tickers':None,
         'start_date':None,
         'end_date':None,

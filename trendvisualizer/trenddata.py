@@ -458,14 +458,17 @@ class TrendRank():
     """
 
     @staticmethod
-    def futures_split(tables):
+    def futures_split(tables, params):
         """
-        Split the continuous futures from the rest of the norgate data
+        Split the futures from the rest of the norgate data (choosing
+        backadjusted data or not)
 
         Parameters
         ----------
         tables : Dict
             Dictionary of key tables.
+        params : Dict
+            Dictionary of key parameters
 
         Returns
         -------
@@ -474,82 +477,27 @@ class TrendRank():
             futures_barometer.
 
         """
-        tables['futures_ticker_dict'] = {
-            k:v for k,v in tables['raw_ticker_dict'].items()
-            if '_ccb' in k}
-        tables['futures_barometer'] = tables['barometer'][
-            tables['barometer']['Ticker'].str.lower().str.contains('_ccb')]
+        # Select backadjusted futures
+        if params['tickers_adjusted']:
+            tables['futures_ticker_dict'] = {
+                k:v for k,v in tables['raw_ticker_dict'].items()
+                if '_ccb' in k}
+            tables['futures_barometer'] = tables['barometer'][
+                tables['barometer']['Ticker'].str.lower().str.contains('_ccb')]
+
+        # Select unadjusted futures
+        else:
+            tables['futures_ticker_dict'] = {
+                k:v for k,v in tables['raw_ticker_dict'].items()
+                if k.startswith('c_')}
+            tables['futures_barometer'] = tables['barometer'][
+                tables['barometer']['Ticker'].str.lower().str.startswith('c_')]
 
         return tables
 
 
     @classmethod
-    def _filter_barometer(cls, tables, params, norgate_source):
-        """
-        Sort and filter the top trending securities
-
-        Parameters
-        ----------
-        barometer : DataFrame
-            DataFrame showing trend strength for each ticker.
-        norgate_source : Bool
-            Whether the market data source is norgate or yahoo.
-
-        Returns
-        -------
-        filtered_barometer : DataFrame
-            DataFrame showing the top trending securities.
-
-        """
-        if norgate_source:
-            # Split the continuous futures data
-            tables = cls.futures_split(tables)
-            barometer = tables['futures_barometer']
-        else:
-            barometer = tables['barometer']
-
-        data = barometer.sort_values(
-            by=['Absolute Trend Strength'],
-            ascending=False)[:params['top_trend_params']['initial_size']]
-
-        filtered_barometer = pd.DataFrame()
-
-        if norgate_source:
-            sectors = set(barometer['Mid Sector'])
-            data = data.sort_values(
-                by=['Mid Sector', 'Absolute Trend Strength'],
-                ascending=False)
-        else:
-            sectors = set(barometer['Sector'])
-            data = data.sort_values(
-                by=['Sector', 'Absolute Trend Strength'], ascending=False)
-
-        for sector in sectors:
-            if norgate_source:
-                frame = data[data['Mid Sector']==sector]
-            else:
-                frame = data[data['Sector']==sector]
-
-            if len(frame) > 0:
-                if norgate_source:
-                    frame = frame.drop_duplicates(subset='Underlying')
-                else:
-                    frame = frame.drop_duplicates(subset='Security')
-
-                if len(frame) > params['top_trend_params']['max_per_sector']:
-                    frame = frame[:params['top_trend_params'][
-                        'max_per_sector']]
-                filtered_barometer = pd.concat([filtered_barometer, frame])
-
-        filtered_barometer = filtered_barometer.sort_values(
-            by=['Absolute Trend Strength'],
-            ascending=False).reset_index().drop(['index'], axis=1)
-
-        return filtered_barometer
-
-
-    @classmethod
-    def top_trend_calc(cls, tables, params, norgate_source):
+    def top_trend_calc(cls, tables, params):
         """
         Prepare list of top trending securities.
 
@@ -576,12 +524,12 @@ class TrendRank():
         top_trends = {}
 
         tables['filtered_barometer'] = cls._filter_barometer(
-            tables, params, norgate_source)
+            tables, params)
 
         top_trends['top_ticker_dict'] = {}
         top_trends['top_ticker_list'] = []
         for ticker in tables['filtered_barometer']['Ticker']:
-            if norgate_source:
+            if params['source'] == 'norgate':
                 ticker_mod = '&'+ticker.upper()
                 ticker_mod = ticker_mod.replace('&C_','&')
             else:
@@ -597,3 +545,69 @@ class TrendRank():
                 top_trends['top_ticker_list'].append(ticker)
 
         return top_trends, tables
+
+
+    @classmethod
+    def _filter_barometer(cls, tables, params):
+        """
+        Sort and filter the top trending securities
+
+        Parameters
+        ----------
+        barometer : DataFrame
+            DataFrame showing trend strength for each ticker.
+        norgate_source : Bool
+            Whether the market data source is norgate or yahoo.
+
+        Returns
+        -------
+        filtered_barometer : DataFrame
+            DataFrame showing the top trending securities.
+
+        """
+        if params['source'] == 'norgate':
+            # Split the continuous futures data
+            tables = cls.futures_split(tables=tables, params=params)
+            barometer = tables['futures_barometer']
+        else:
+            barometer = tables['barometer']
+
+        data = barometer.sort_values(
+            by=['Absolute Trend Strength'],
+            ascending=False)[:params['top_trend_params']['initial_size']]
+
+        filtered_barometer = pd.DataFrame()
+
+        if params['source'] == 'norgate':
+            sectors = set(barometer['Mid Sector'])
+            data = data.sort_values(
+                by=['Mid Sector', 'Absolute Trend Strength'],
+                ascending=False)
+        else:
+            sectors = set(barometer['Sector'])
+            data = data.sort_values(
+                by=['Sector', 'Absolute Trend Strength'], ascending=False)
+
+        for sector in sectors:
+            if params['source'] == 'norgate':
+                frame = data[data['Mid Sector']==sector]
+            else:
+                frame = data[data['Sector']==sector]
+
+            if len(frame) > 0:
+                if params['source'] == 'norgate':
+                    frame = frame.drop_duplicates(subset='Underlying')
+                else:
+                    frame = frame.drop_duplicates(subset='Security')
+
+                if len(frame) > params['top_trend_params']['max_per_sector']:
+                    frame = frame[:params['top_trend_params'][
+                        'max_per_sector']]
+                filtered_barometer = pd.concat([filtered_barometer, frame])
+
+        filtered_barometer = filtered_barometer.sort_values(
+            by=['Absolute Trend Strength'],
+            ascending=False).reset_index().drop(['index'], axis=1)
+
+        return filtered_barometer
+

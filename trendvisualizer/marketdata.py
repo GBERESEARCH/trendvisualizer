@@ -16,7 +16,7 @@ class NorgateExtract():
 
     """
     @staticmethod
-    def get_norgate_tickers():
+    def get_norgate_tickers(params):
         """
         Create list of all available Norgate Commodity tickers
 
@@ -58,14 +58,22 @@ class NorgateExtract():
             key = dicto['symbol']
             value = dicto['securityname']
 
-            # Only take the back-adjusted tickers
-            if '_CCB' in key:
-                init_ticker_dict[key] = value
+            if params['tickers_adjusted']:
+                # Only take the back-adjusted tickers
+                if '_CCB' in key:
+                    init_ticker_dict[key] = value
+
+            else:
+                if key.startswith('&') and '_CCB' not in key:
+                    init_ticker_dict[key] = value
 
         # Convert the ticker dict keys into a list
         tickers = list(init_ticker_dict.keys())
 
-        return tickers, init_ticker_dict
+        params['tickers'] = tickers
+        params['init_ticker_dict'] = init_ticker_dict
+
+        return params
 
 
     @classmethod

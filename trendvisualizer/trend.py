@@ -177,8 +177,7 @@ class TrendStrength():
         # If a list of tickers are not supplied, run the function to collect
         # available tickers
         if params['tickers'] is None:
-            params['tickers'], params[
-                'init_ticker_dict'] = NorgateExtract.get_norgate_tickers()
+            params = NorgateExtract.get_norgate_tickers(params=params)
 
         # Set the start and end dates
         params = MktUtils.date_set(params)
@@ -298,13 +297,8 @@ class TrendStrength():
 
         """
         # Generate list of top trending securities
-        if params['source'] == 'norgate':
-            norgate_source=True
-        else:
-            norgate_source=False
-
         top_trends, tables = TrendRank.top_trend_calc(
-            tables, params, norgate_source=norgate_source)
+            tables, params)
 
         return top_trends, tables
 
