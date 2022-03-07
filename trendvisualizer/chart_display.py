@@ -96,7 +96,7 @@ class Graphs():
         plt.xlabel("Trend Strength", fontsize=font_scaler*1.2, labelpad=10)
 
         # Set title
-        plt.suptitle(titlestr+' Trending Markets',
+        plt.suptitle(titlestr+' Trending Markets'+' - '+params['end_date'],
                      fontsize=18,
                      fontweight=0,
                      color='black',
@@ -265,7 +265,7 @@ class Graphs():
         # Set title
         dynamic_y = 1.05 + params['mkts']/500
         plt.suptitle('Relative Return Over Last '
-                     +str(len(tenor))+' Trading Days',
+                     +str(len(tenor))+' Trading Days'+' - '+params['end_date'],
                      fontsize=25,
                      fontweight=0,
                      color='black',
@@ -608,7 +608,10 @@ class Graphs():
         ax1.xaxis.set_major_formatter(PercentFormatter(1))
         ax1.set_xlim(params['axis_range'])
         ax1.tick_params(axis='both', which='major', labelsize=12)
-        ax1.set_title('Trend Strength by Sector', fontsize=18, y=1)
+        ax1.set_title('Trend Strength by Sector'
+                      +' - '
+                      +params['end_date'],
+                      fontsize=18, y=1)
         ax1.legend(bbox_to_anchor= (1.1, 1),
                   title_fontsize=10,
                   fontsize=8,
@@ -643,7 +646,10 @@ class Graphs():
                            palette='viridis',
                            s=params['marker_size'])
 
-        ax1.set_title('Trend Strength by Sector', fontsize=18, y=1)
+        ax1.set_title('Trend Strength by Sector'
+                      +' - '
+                      +params['end_date'],
+                      fontsize=18, y=1)
         ax1.xaxis.set_major_formatter(PercentFormatter(1))
         ax1.set_xlim(params['axis_range'])
         ax1.tick_params(axis='both', which='major', labelsize=12)

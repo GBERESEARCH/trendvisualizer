@@ -158,9 +158,11 @@ class PieCharts():
                 y=1)
 
         # Create overall chart title label
-        params['charttitle'] = ('Trend direction of '
-                                +params['indicator_name_dict'][
-                                    params['indicator_type']][1]+' indicators')
+        params['charttitle'] = (
+            'Trend direction of '
+            +params['indicator_name_dict'][params['indicator_type']][1]
+            +' indicators'
+            +' - '+params['end_date'])
 
         # Assign this to the figure
         fig.suptitle(params['charttitle'],
@@ -284,7 +286,8 @@ class PieCharts():
             'Trend direction of '
             +str(params['pie_tenor'])
             +' day '
-            +params['indicator_name_dict'][params['indicator_type']][1])
+            +params['indicator_name_dict'][params['indicator_type']][1]
+            +' - '+params['end_date'])
 
         # general title
         fig.suptitle(params['charttitle'],

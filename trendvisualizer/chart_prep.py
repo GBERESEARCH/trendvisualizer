@@ -90,6 +90,8 @@ class Formatting():
                               +" Markets - Price Over Last "
                               +str(days)+' Trading Days')
 
+        charttitle = charttitle+' - '+params['end_date']
+
         return charttitle
 
 
