@@ -18,6 +18,31 @@ Install from PyPI:
 $ pip install trendvisualizer
 ```
 
+&nbsp;
+
+Install in a new environment using Python venv:
+
+Create base environment of Python 3.11
+```
+$ py -3.11 -m venv .venv
+```
+Activate new environment
+```
+$ .venv\scripts\activate
+```
+Ensure pip is up to date
+``` 
+$ (.venv) python -m pip install --upgrade pip
+```
+Install Spyder
+```
+$ (.venv) python -m pip install spyder
+```
+Install package
+```
+$ (.venv) python -m pip install trendvisualizer
+```
+
 
 &nbsp;
 
@@ -31,11 +56,11 @@ $ activate trendvis
 ```
 Install Python
 ```
-(trendvis) $ conda install python==3.8.8
+(trendvis) $ conda install python==3.9
 ```
 Install Spyder
 ```
-(trendvis) $ conda install spyder==4.2.5
+(trendvis) $ conda install spyder
 ```
 
 Install trendvisualizer
