@@ -670,6 +670,7 @@ class Graphs():
                                 #color=".8",
                                 linewidth=1,
                                 palette="coolwarm",
+                                hue=params['sector_name'],
                                 scale='count')
         ax1 = sns.stripplot(x=params['trend_type'],
                            y=params['sector_name'],
@@ -680,6 +681,7 @@ class Graphs():
                            order=params['sector_list'],
                            marker=params['marker'],
                            palette='viridis',
+                           hue=params['sector_name'],
                            s=params['marker_size'])
 
         ax1.set_title('Trend Strength by Sector'
