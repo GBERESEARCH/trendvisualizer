@@ -3,9 +3,13 @@ Display various charts of Trend Strength
 
 """
 import warnings
+import matplotlib.axes as axes
+import matplotlib.cm as cm
 import matplotlib.dates as mdates
 import matplotlib.pyplot as plt
+import matplotlib.ticker as ticker
 import numpy as np
+import pandas as pd
 import seaborn as sns
 from matplotlib.dates import MO, WeekdayLocator, MonthLocator
 from matplotlib.ticker import MaxNLocator, AutoMinorLocator, PercentFormatter
@@ -19,7 +23,10 @@ class Graphs():
 
     """
     @classmethod
-    def trendbarchart(cls, params, barometer):
+    def trendbarchart(
+        cls, 
+        params: dict, 
+        barometer: pd.DataFrame) -> None:
         """
         Create a barchart of the most or least trending markets.
 
@@ -107,10 +114,13 @@ class Graphs():
 
 
     @staticmethod
-    def _bar_up(ax1, params, barometer):
+    def _bar_up(
+        ax1: axes.Axes, 
+        params: dict, 
+        barometer: pd.DataFrame) -> tuple[axes.Axes, str]:
 
         # Set the x-axis range
-        ax1.set_xlim([0,1])
+        ax1.set_xlim(left=0, right=1)
 
         # Sort by Trend Strength
         barometer = barometer.sort_values(
@@ -125,10 +135,13 @@ class Graphs():
 
 
     @staticmethod
-    def _bar_down(ax1, params, barometer):
+    def _bar_down(
+        ax1: axes.Axes, 
+        params: dict, 
+        barometer: pd.DataFrame) -> tuple[axes.Axes, str]:
 
         # Set the x-axis range
-        ax1.set_xlim([-1,0])
+        ax1.set_xlim(left=-1, right=0)
 
         # Sort by Trend Strength
         barometer = barometer.sort_values(
@@ -143,10 +156,13 @@ class Graphs():
 
 
     @staticmethod
-    def _bar_neutral(ax1, params, barometer):
+    def _bar_neutral(
+        ax1: axes.Axes, 
+        params: dict, 
+        barometer: pd.DataFrame) -> tuple[axes.Axes, str]:
 
         # Set the x-axis range
-        ax1.set_xlim([-1,1])
+        ax1.set_xlim(left=-1, right=1)
 
         # Sort by Absolute Trend Strength
         barometer = barometer.sort_values(
@@ -163,10 +179,13 @@ class Graphs():
 
 
     @staticmethod
-    def _bar_strong(ax1, params, barometer):
+    def _bar_strong(
+        ax1: axes.Axes, 
+        params: dict, 
+        barometer: pd.DataFrame) -> tuple[axes.Axes, str]:
 
         # Set the x-axis range
-        ax1.set_xlim([-1,1])
+        ax1.set_xlim(left=-1, right=1)
 
         # Sort by Absolute Trend Strength
         barometer = barometer.sort_values(
@@ -181,7 +200,10 @@ class Graphs():
 
 
     @classmethod
-    def returnsgraph(cls, params, tables):
+    def returnsgraph(
+        cls, 
+        params: dict, 
+        tables: dict) -> None:
         """
         Create a line graph of normalised price history
 
@@ -276,7 +298,9 @@ class Graphs():
 
 
     @staticmethod
-    def _returns_ticks(ax1, tenor):
+    def _returns_ticks(
+        ax1: axes.Axes, 
+        tenor: pd.DataFrame) -> axes.Axes:
 
         # create a variable to choose interval between xticks based on
         # length of history
@@ -315,7 +339,7 @@ class Graphs():
 
         # Set prices to the right as we are concerned with the current
         # level
-        ax1.yaxis.set_major_locator(plt.MaxNLocator(11))
+        ax1.yaxis.set_major_locator(ticker.MaxNLocator(11))
         ax1.yaxis.set_label_position('right')
         ax1.yaxis.tick_right()
 
@@ -333,7 +357,10 @@ class Graphs():
 
 
     @classmethod
-    def marketchart(cls, params, tables):
+    def marketchart(
+        cls, 
+        params: dict, 
+        tables: dict) -> dict:
         """
         Create a chart showing the top and bottom 20 trending markets.
 
@@ -382,7 +409,7 @@ class Graphs():
         plt.rcParams.update(params['mpl_chart_params'])
 
         # create a color palette
-        palette = plt.get_cmap('tab20')
+        palette = cm.get_cmap('tab20')
 
         # Initialize the figure
         fig, ax1 = plt.subplots(figsize=(int(params['chart_dimensions'][1]*3),
@@ -453,7 +480,7 @@ class Graphs():
         params['charttitle'] = Formatting.get_charttitle(params=params)
 
         # general title
-        fig.suptitle(params['charttitle'],
+        fig.suptitle(params['charttitle'], 
                      fontsize=20,
                      fontweight=0,
                      color='black',
@@ -464,7 +491,9 @@ class Graphs():
 
 
     @staticmethod
-    def _market_ticks(ax1, params):
+    def _market_ticks(
+        ax1: axes.Axes, 
+        params: dict) -> axes.Axes:
 
         # create a variable to choose interval between xticks based
         # on length of history
@@ -511,7 +540,10 @@ class Graphs():
 
 
     @classmethod
-    def summaryplot(cls, params, tables):
+    def summaryplot(
+        cls, 
+        params: dict, 
+        tables: dict) -> tuple[dict, dict]:
         """
         Plot a summary of the strength of trend across markets
 
@@ -590,7 +622,10 @@ class Graphs():
 
 
     @staticmethod
-    def _create_swarm(ax1, params, tables):
+    def _create_swarm(
+        ax1: axes.Axes, 
+        params: dict, 
+        tables: dict) -> axes.Axes:
 
         ax1 = sns.swarmplot(data=tables['chart_barometer'],
                             x=params['trend_type'],
@@ -624,7 +659,10 @@ class Graphs():
 
 
     @staticmethod
-    def _create_strip(ax1, params, tables):
+    def _create_strip(
+        ax1: axes.Axes, 
+        params: dict, 
+        tables: dict) -> axes.Axes:
 
         if params['violin']:
             ax1 = sns.violinplot(x=params['trend_type'],
