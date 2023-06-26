@@ -16,7 +16,7 @@ class NorgateExtract():
 
     """
     @staticmethod
-    def get_norgate_tickers(params):
+    def get_norgate_tickers(params: dict) -> dict:
         """
         Create list of all available Norgate Commodity tickers
 
@@ -77,7 +77,11 @@ class NorgateExtract():
 
 
     @classmethod
-    def importnorgate(cls, params, tables, mappings):
+    def importnorgate(
+        cls, 
+        params: dict, 
+        tables: dict, 
+        mappings: dict) -> tuple[dict, dict, dict]:
         """
         Return dictionary of price histories from Norgate Data.
 
@@ -158,7 +162,9 @@ class NorgateExtract():
 
 
     @staticmethod
-    def _commodity_sector_mappings(params, mappings):
+    def _commodity_sector_mappings(
+        params: dict, 
+        mappings: dict) -> pd.DataFrame:
         """
         Create sector mappings DataFrame
 
@@ -210,7 +216,9 @@ class YahooExtract():
 
     """
     @staticmethod
-    def tickerextract(params, mappings):
+    def tickerextract(
+        params: dict, 
+        mappings: dict) -> tuple[dict, dict]:
         """
         Extract list of S&P 500 Companies from Wikipedia.
 
@@ -284,7 +292,10 @@ class YahooExtract():
 
 
     @classmethod
-    def importyahoo(cls, params, tables):
+    def importyahoo(
+        cls, 
+        params: dict, 
+        tables: dict) -> tuple[dict, dict]:
         """
         Return dictionary of price histories from Yahoo Finance.
 
@@ -337,13 +348,15 @@ class YahooExtract():
 
 
     @staticmethod
-    def _returndata(ticker, params):
+    def _returndata(
+        ticker: str, 
+        params: dict) -> tuple[pd.DataFrame, dict]:
         """
         Create DataFrame of historic prices for specified ticker.
 
         Parameters
         ----------
-        ticker : Int
+        ticker : Str
             Stock to be returned in the form of Reuters RIC code as a
             string.
         params : Dict
@@ -399,7 +412,9 @@ class MktUtils():
 
     """
     @staticmethod
-    def ticker_clean(params, tables):
+    def ticker_clean(
+        params: dict, 
+        tables: dict) -> dict:
         """
         Remove tickers with incomplete history
 
@@ -440,7 +455,9 @@ class MktUtils():
 
 
     @staticmethod
-    def window_set(frame, params):
+    def window_set(
+        frame: pd.DataFrame, 
+        params: dict) -> dict:
         """
         Set the correct length of the selected data
 
@@ -473,7 +490,7 @@ class MktUtils():
 
 
     @staticmethod
-    def date_set(params):
+    def date_set(params: dict) -> dict:
         """
         Create start and end dates if not supplied
 
