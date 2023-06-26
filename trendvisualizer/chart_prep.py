@@ -13,7 +13,7 @@ class Formatting():
 
     """
     @staticmethod
-    def get_charttitle(params):
+    def get_charttitle(params: dict) -> dict:
         """
         Create title label for market chart
 
@@ -96,7 +96,7 @@ class Formatting():
 
 
     @staticmethod
-    def mkt_dims(params):
+    def mkt_dims(params: dict) -> dict:
         """
         Create a tuple giving the height and width of the market chart
 
@@ -141,7 +141,10 @@ class Formatting():
 
 
     @classmethod
-    def normdata(cls, params, tables):
+    def normdata(
+        cls, 
+        params: dict, 
+        tables: dict) -> pd.DataFrame:
         """
         Create a subset of chart_prep dataset normalized to start from
         100 for the specified history window
@@ -188,7 +191,10 @@ class Formatting():
 
 
     @classmethod
-    def _chartdata(cls, params, tables):
+    def _chartdata(
+        cls, 
+        params: dict, 
+        tables: dict) -> pd.DataFrame:
         """
         Create a time series of closing prices for selected markets.
 
@@ -238,7 +244,12 @@ class Formatting():
 
 
     @classmethod
-    def datalist(cls, params, barometer, market_chart, num_charts):
+    def datalist(
+        cls, 
+        params: dict, 
+        barometer: pd.DataFrame, 
+        market_chart: bool, 
+        num_charts: int) -> list:
         """
         Create a list of the most / least trending markets.
 
@@ -315,7 +326,11 @@ class Formatting():
 
 
     @staticmethod
-    def _uptrend(barometer, market_chart, num_charts, mkts):
+    def _uptrend(
+        barometer: pd.DataFrame, 
+        market_chart: bool, 
+        num_charts: int,
+        mkts: int) -> list:
 
         # Sort by Trend Strength
         barometer = barometer.sort_values(
@@ -333,7 +348,11 @@ class Formatting():
 
 
     @staticmethod
-    def _downtrend(barometer, market_chart, num_charts, mkts):
+    def _downtrend(
+        barometer: pd.DataFrame, 
+        market_chart: bool, 
+        num_charts: int,
+        mkts: int) -> list:
 
         # Sort by Trend Strength
         barometer = barometer.sort_values(
@@ -351,7 +370,11 @@ class Formatting():
 
 
     @staticmethod
-    def _neutraltrend(barometer, market_chart, num_charts, mkts):
+    def _neutraltrend(
+        barometer: pd.DataFrame, 
+        market_chart: bool, 
+        num_charts: int,
+        mkts: int) -> list:
 
         # Sort by Absolute Trend Strength
         barometer = barometer.sort_values(
@@ -369,7 +392,11 @@ class Formatting():
 
 
     @staticmethod
-    def _strongtrend(barometer, market_chart, num_charts, mkts):
+    def _strongtrend(
+        barometer: pd.DataFrame, 
+        market_chart: bool, 
+        num_charts: int,
+        mkts: int) -> list:
 
         # Sort by Trend Strength
         barometer = barometer.sort_values(
@@ -398,7 +425,11 @@ class Formatting():
 
 
     @staticmethod
-    def _mixedtrend(barometer, market_chart, num_charts, mkts):
+    def _mixedtrend(
+        barometer: pd.DataFrame, 
+        market_chart: bool, 
+        num_charts: int,
+        mkts: int) -> list:
 
         # Sort by Trend Strength
         barometer = barometer.sort_values(
@@ -441,7 +472,10 @@ class Formatting():
 
 
     @classmethod
-    def summary_config(cls, params, barometer):
+    def summary_config(
+        cls, 
+        params: dict, 
+        barometer: pd.DataFrame) -> tuple[dict, pd.DataFrame]:
         """
         Configure inputs for Trend Summary plots
 
@@ -559,7 +593,10 @@ class Formatting():
 
 
     @staticmethod
-    def _setheight(params, chart_barometer, trend_sector_group):
+    def _setheight(
+        params: dict, 
+        chart_barometer: pd.DataFrame, 
+        trend_sector_group: pd.DataFrame) -> float:
 
         max_bucket = chart_barometer[params['trend_type']].value_counts().max()
 
