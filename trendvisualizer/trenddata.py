@@ -14,7 +14,10 @@ class Fields():
     """
 
     @classmethod
-    def generate_fields(cls, params, ticker_dict):
+    def generate_fields(
+        cls,
+        params: dict,
+        ticker_dict: dict) -> dict:
         """
         Create and add various trend indicators to each DataFrame in
         the dictionary of tickers
@@ -101,7 +104,11 @@ class Fields():
 
 
     @staticmethod
-    def _field_ma(params, frame, ticker):
+    def _field_ma(
+        params:dict,
+        frame: pd.DataFrame,
+        ticker: str) -> pd.DataFrame:
+
         for tenor in params['ma_list']:
             try:
                 frame['MA_'+str(tenor)] = frame['Close'].rolling(
@@ -120,7 +127,11 @@ class Fields():
 
 
     @staticmethod
-    def _field_px_ma(params, frame, ticker):
+    def _field_px_ma(
+        params:dict,
+        frame: pd.DataFrame,
+        ticker: str) -> pd.DataFrame:
+
         for tenor in params['price_cross_list']:
             try:
                 frame['PX_MA_'+str(tenor)+'_flag'] = np.where(
@@ -139,7 +150,11 @@ class Fields():
 
 
     @staticmethod
-    def _field_macd(params, frame, ticker):
+    def _field_macd(
+        params:dict,
+        frame: pd.DataFrame,
+        ticker: str) -> pd.DataFrame:
+
         try:
             frame['MACD'], frame['MACD_SIGNAL'], \
                 frame['MACD_HIST'] = Indicators.MACD(
@@ -159,7 +174,11 @@ class Fields():
 
 
     @staticmethod
-    def _field_adx(params, frame, ticker):
+    def _field_adx(
+        params:dict,
+        frame: pd.DataFrame,
+        ticker: str) -> pd.DataFrame:
+
         for tenor in params['adx_list']:
             try:
                 frame['ADX_'+str(tenor)] = Indicators.ADX(
@@ -183,7 +202,11 @@ class Fields():
 
 
     @staticmethod
-    def _field_ma_cross(params, frame, ticker):
+    def _field_ma_cross(
+        params:dict,
+        frame: pd.DataFrame,
+        ticker: str) -> pd.DataFrame:
+
         for tenor_pair in params['ma_cross_list']:
             try:
                 frame['MA_'+str(tenor_pair[0])+'_'+str(
@@ -198,7 +221,11 @@ class Fields():
 
 
     @staticmethod
-    def _field_rsi(params, frame, ticker):
+    def _field_rsi(
+        params:dict,
+        frame: pd.DataFrame,
+        ticker: str) -> pd.DataFrame:
+
         for tenor in params['rsi_list']:
             try:
                 frame['RSI_'+str(tenor)] = Indicators.RSI(
@@ -219,7 +246,11 @@ class Fields():
 
 
     @staticmethod
-    def _field_breakout(params, frame, ticker):
+    def _field_breakout(
+        params:dict,
+        frame: pd.DataFrame,
+        ticker: str) -> pd.DataFrame:
+
         for tenor in params['breakout_list']:
             try:
                 frame['low_'+str(tenor)], frame['high_'+str(tenor)], \
@@ -241,7 +272,11 @@ class Fields():
 
 
     @staticmethod
-    def _field_atr(params, frame, ticker):
+    def _field_atr(
+        params:dict,
+        frame: pd.DataFrame,
+        ticker: str) -> pd.DataFrame:
+
         for tenor in params['atr_list']:
             try:
                 frame['ATR_'+str(tenor)] = Indicators.ATR(
@@ -264,7 +299,11 @@ class Fields():
 
 
     @classmethod
-    def generate_trend_strength(cls, params, ticker_dict, sector_mappings_df):
+    def generate_trend_strength(
+        cls,
+        params: dict,
+        ticker_dict: dict,
+        sector_mappings_df: pd.DataFrame) -> pd.DataFrame:
         """
         Create a DataFrame showing the strength of trend for selected
         markets.
@@ -360,7 +399,9 @@ class Fields():
 
 
     @staticmethod
-    def _prepframe(params, ticker_dict):
+    def _prepframe(
+        params: dict,
+        ticker_dict: dict) -> pd.DataFrame:
 
         # Create list of tickers from ticker_dict
         ticker_list = [ticker for ticker, df in ticker_dict.items()]
@@ -387,7 +428,7 @@ class Fields():
 
 
     @staticmethod
-    def _col_color(row):
+    def _col_color(row: pd.Series) -> pd.Series:
 
         # Create trend strength color column and absolute strength column
         row['Absolute Trend Strength'] = np.abs(row['Trend Strength'])
@@ -405,7 +446,10 @@ class Fields():
 
 
     @staticmethod
-    def _barometer_sectors(params, barometer, sector_mappings_df):
+    def _barometer_sectors(
+        params: dict,
+        barometer: pd.DataFrame,
+        sector_mappings_df: pd.DataFrame) -> pd.DataFrame:
         """
         Add sector mappings to the trend barometer table to use in summary
         graph
@@ -458,7 +502,9 @@ class TrendRank():
     """
 
     @staticmethod
-    def futures_split(tables, params):
+    def futures_split(
+        tables: dict,
+        params: dict) -> dict:
         """
         Split the futures from the rest of the norgate data (choosing
         backadjusted data or not)
@@ -497,7 +543,10 @@ class TrendRank():
 
 
     @classmethod
-    def top_trend_calc(cls, tables, params):
+    def top_trend_calc(
+        cls,
+        tables: dict,
+        params: dict) -> tuple[dict, dict]:
         """
         Prepare list of top trending securities.
 
@@ -548,7 +597,10 @@ class TrendRank():
 
 
     @classmethod
-    def _filter_barometer(cls, tables, params):
+    def _filter_barometer(
+        cls,
+        tables: dict,
+        params: dict) -> pd.DataFrame:
         """
         Sort and filter the top trending securities
 
@@ -610,4 +662,3 @@ class TrendRank():
             ascending=False).reset_index().drop(['index'], axis=1)
 
         return filtered_barometer
-

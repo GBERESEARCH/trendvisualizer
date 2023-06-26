@@ -3,14 +3,12 @@ Display various charts of Trend Strength
 
 """
 import warnings
-import matplotlib.axes as axes
-import matplotlib.cm as cm
 import matplotlib.dates as mdates
 import matplotlib.pyplot as plt
-import matplotlib.ticker as ticker
 import numpy as np
 import pandas as pd
 import seaborn as sns
+from matplotlib import axes, cm
 from matplotlib.dates import MO, WeekdayLocator, MonthLocator
 from matplotlib.ticker import MaxNLocator, AutoMinorLocator, PercentFormatter
 from trendvisualizer.chart_prep import Formatting
@@ -24,8 +22,8 @@ class Graphs():
     """
     @classmethod
     def trendbarchart(
-        cls, 
-        params: dict, 
+        cls,
+        params: dict,
         barometer: pd.DataFrame) -> None:
         """
         Create a barchart of the most or least trending markets.
@@ -115,8 +113,8 @@ class Graphs():
 
     @staticmethod
     def _bar_up(
-        ax1: axes.Axes, 
-        params: dict, 
+        ax1: axes.Axes,
+        params: dict,
         barometer: pd.DataFrame) -> tuple[axes.Axes, str]:
 
         # Set the x-axis range
@@ -136,8 +134,8 @@ class Graphs():
 
     @staticmethod
     def _bar_down(
-        ax1: axes.Axes, 
-        params: dict, 
+        ax1: axes.Axes,
+        params: dict,
         barometer: pd.DataFrame) -> tuple[axes.Axes, str]:
 
         # Set the x-axis range
@@ -157,8 +155,8 @@ class Graphs():
 
     @staticmethod
     def _bar_neutral(
-        ax1: axes.Axes, 
-        params: dict, 
+        ax1: axes.Axes,
+        params: dict,
         barometer: pd.DataFrame) -> tuple[axes.Axes, str]:
 
         # Set the x-axis range
@@ -180,8 +178,8 @@ class Graphs():
 
     @staticmethod
     def _bar_strong(
-        ax1: axes.Axes, 
-        params: dict, 
+        ax1: axes.Axes,
+        params: dict,
         barometer: pd.DataFrame) -> tuple[axes.Axes, str]:
 
         # Set the x-axis range
@@ -201,8 +199,8 @@ class Graphs():
 
     @classmethod
     def returnsgraph(
-        cls, 
-        params: dict, 
+        cls,
+        params: dict,
         tables: dict) -> None:
         """
         Create a line graph of normalised price history
@@ -299,7 +297,7 @@ class Graphs():
 
     @staticmethod
     def _returns_ticks(
-        ax1: axes.Axes, 
+        ax1: axes.Axes,
         tenor: pd.DataFrame) -> axes.Axes:
 
         # create a variable to choose interval between xticks based on
@@ -339,7 +337,7 @@ class Graphs():
 
         # Set prices to the right as we are concerned with the current
         # level
-        ax1.yaxis.set_major_locator(ticker.MaxNLocator(11))
+        ax1.yaxis.set_major_locator(MaxNLocator(11))
         ax1.yaxis.set_label_position('right')
         ax1.yaxis.tick_right()
 
@@ -358,8 +356,8 @@ class Graphs():
 
     @classmethod
     def marketchart(
-        cls, 
-        params: dict, 
+        cls,
+        params: dict,
         tables: dict) -> dict:
         """
         Create a chart showing the top and bottom 20 trending markets.
@@ -480,7 +478,7 @@ class Graphs():
         params['charttitle'] = Formatting.get_charttitle(params=params)
 
         # general title
-        fig.suptitle(params['charttitle'], 
+        fig.suptitle(params['charttitle'],
                      fontsize=20,
                      fontweight=0,
                      color='black',
@@ -492,7 +490,7 @@ class Graphs():
 
     @staticmethod
     def _market_ticks(
-        ax1: axes.Axes, 
+        ax1: axes.Axes,
         params: dict) -> axes.Axes:
 
         # create a variable to choose interval between xticks based
@@ -541,8 +539,8 @@ class Graphs():
 
     @classmethod
     def summaryplot(
-        cls, 
-        params: dict, 
+        cls,
+        params: dict,
         tables: dict) -> tuple[dict, dict]:
         """
         Plot a summary of the strength of trend across markets
@@ -623,8 +621,8 @@ class Graphs():
 
     @staticmethod
     def _create_swarm(
-        ax1: axes.Axes, 
-        params: dict, 
+        ax1: axes.Axes,
+        params: dict,
         tables: dict) -> axes.Axes:
 
         ax1 = sns.swarmplot(data=tables['chart_barometer'],
@@ -660,8 +658,8 @@ class Graphs():
 
     @staticmethod
     def _create_strip(
-        ax1: axes.Axes, 
-        params: dict, 
+        ax1: axes.Axes,
+        params: dict,
         tables: dict) -> axes.Axes:
 
         if params['violin']:

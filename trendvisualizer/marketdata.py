@@ -78,9 +78,9 @@ class NorgateExtract():
 
     @classmethod
     def importnorgate(
-        cls, 
-        params: dict, 
-        tables: dict, 
+        cls,
+        params: dict,
+        tables: dict,
         mappings: dict) -> tuple[dict, dict, dict]:
         """
         Return dictionary of price histories from Norgate Data.
@@ -163,7 +163,7 @@ class NorgateExtract():
 
     @staticmethod
     def _commodity_sector_mappings(
-        params: dict, 
+        params: dict,
         mappings: dict) -> pd.DataFrame:
         """
         Create sector mappings DataFrame
@@ -217,7 +217,7 @@ class YahooExtract():
     """
     @staticmethod
     def tickerextract(
-        params: dict, 
+        params: dict,
         mappings: dict) -> tuple[dict, dict]:
         """
         Extract list of S&P 500 Companies from Wikipedia.
@@ -244,7 +244,7 @@ class YahooExtract():
 
         # Extract data from the Wikipedia SPX page
         url = 'https://en.wikipedia.org/wiki/List_of_S%26P_500_companies'
-        req = requests.get(url)
+        req = requests.get(url, timeout=10)
         html_doc = req.text
         spx_list = pd.read_html(html_doc)
 
@@ -293,8 +293,8 @@ class YahooExtract():
 
     @classmethod
     def importyahoo(
-        cls, 
-        params: dict, 
+        cls,
+        params: dict,
         tables: dict) -> tuple[dict, dict]:
         """
         Return dictionary of price histories from Yahoo Finance.
@@ -349,7 +349,7 @@ class YahooExtract():
 
     @staticmethod
     def _returndata(
-        ticker: str, 
+        ticker: str,
         params: dict) -> tuple[pd.DataFrame, dict]:
         """
         Create DataFrame of historic prices for specified ticker.
@@ -413,7 +413,7 @@ class MktUtils():
     """
     @staticmethod
     def ticker_clean(
-        params: dict, 
+        params: dict,
         tables: dict) -> dict:
         """
         Remove tickers with incomplete history
@@ -456,7 +456,7 @@ class MktUtils():
 
     @staticmethod
     def window_set(
-        frame: pd.DataFrame, 
+        frame: pd.DataFrame,
         params: dict) -> dict:
         """
         Set the correct length of the selected data

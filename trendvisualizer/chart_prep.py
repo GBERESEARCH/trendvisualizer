@@ -142,8 +142,8 @@ class Formatting():
 
     @classmethod
     def normdata(
-        cls, 
-        params: dict, 
+        cls,
+        params: dict,
         tables: dict) -> pd.DataFrame:
         """
         Create a subset of chart_prep dataset normalized to start from
@@ -192,8 +192,8 @@ class Formatting():
 
     @classmethod
     def _chartdata(
-        cls, 
-        params: dict, 
+        cls,
+        params: dict,
         tables: dict) -> pd.DataFrame:
         """
         Create a time series of closing prices for selected markets.
@@ -245,10 +245,10 @@ class Formatting():
 
     @classmethod
     def datalist(
-        cls, 
-        params: dict, 
-        barometer: pd.DataFrame, 
-        market_chart: bool, 
+        cls,
+        params: dict,
+        barometer: pd.DataFrame,
+        market_chart: bool,
         num_charts: int) -> list:
         """
         Create a list of the most / least trending markets.
@@ -327,8 +327,8 @@ class Formatting():
 
     @staticmethod
     def _uptrend(
-        barometer: pd.DataFrame, 
-        market_chart: bool, 
+        barometer: pd.DataFrame,
+        market_chart: bool,
         num_charts: int,
         mkts: int) -> list:
 
@@ -349,8 +349,8 @@ class Formatting():
 
     @staticmethod
     def _downtrend(
-        barometer: pd.DataFrame, 
-        market_chart: bool, 
+        barometer: pd.DataFrame,
+        market_chart: bool,
         num_charts: int,
         mkts: int) -> list:
 
@@ -371,8 +371,8 @@ class Formatting():
 
     @staticmethod
     def _neutraltrend(
-        barometer: pd.DataFrame, 
-        market_chart: bool, 
+        barometer: pd.DataFrame,
+        market_chart: bool,
         num_charts: int,
         mkts: int) -> list:
 
@@ -393,8 +393,8 @@ class Formatting():
 
     @staticmethod
     def _strongtrend(
-        barometer: pd.DataFrame, 
-        market_chart: bool, 
+        barometer: pd.DataFrame,
+        market_chart: bool,
         num_charts: int,
         mkts: int) -> list:
 
@@ -426,8 +426,8 @@ class Formatting():
 
     @staticmethod
     def _mixedtrend(
-        barometer: pd.DataFrame, 
-        market_chart: bool, 
+        barometer: pd.DataFrame,
+        market_chart: bool,
         num_charts: int,
         mkts: int) -> list:
 
@@ -473,8 +473,8 @@ class Formatting():
 
     @classmethod
     def summary_config(
-        cls, 
-        params: dict, 
+        cls,
+        params: dict,
         barometer: pd.DataFrame) -> tuple[dict, pd.DataFrame]:
         """
         Configure inputs for Trend Summary plots
@@ -594,8 +594,8 @@ class Formatting():
 
     @staticmethod
     def _setheight(
-        params: dict, 
-        chart_barometer: pd.DataFrame, 
+        params: dict,
+        chart_barometer: pd.DataFrame,
         trend_sector_group: pd.DataFrame) -> float:
 
         max_bucket = chart_barometer[params['trend_type']].value_counts().max()

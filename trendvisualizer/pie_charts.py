@@ -6,8 +6,9 @@ Display pie charts of trend strength
 import matplotlib.pyplot as plt
 import numpy as np
 import pandas as pd
+from matplotlib import axes
 from matplotlib import font_manager as fm
-
+# pylint: disable=consider-using-f-string
 
 class PieCharts():
     """
@@ -15,7 +16,9 @@ class PieCharts():
 
     """
     @staticmethod
-    def pie_summary(params, barometer):
+    def pie_summary(
+        params: dict,
+        barometer: pd.DataFrame) -> dict:
         """
         Plot pie charts for each of the 6 tenors: 10D, 20D, 30D, 50D, 100D
         and 200D for the chosen trend indicator.
@@ -176,7 +179,10 @@ class PieCharts():
 
 
     @classmethod
-    def pie_breakdown(cls, params, tables):
+    def pie_breakdown(
+        cls,
+        params: dict,
+        tables: dict) -> tuple[dict, dict]:
         """
         Chart showing the proportions of long, short and neutral signals for a
         given indicator and tenor and the breakdown of these by sector
@@ -303,7 +309,9 @@ class PieCharts():
 
 
     @staticmethod
-    def _init_pie_params(params, barometer):
+    def _init_pie_params(
+        params: dict,
+        barometer: pd.DataFrame) -> dict:
 
         # Dictionary to store piechart parameters
         params['pie_params'] = {}
@@ -352,7 +360,9 @@ class PieCharts():
 
 
     @staticmethod
-    def _sector_split(params, tables):
+    def _sector_split(
+        params: dict,
+        tables: dict) -> tuple[dict, dict]:
 
         # Suppress SettingWithCopyWarning caused by slicing DataFrame
         pd.options.mode.chained_assignment = None
@@ -414,11 +424,15 @@ class PieCharts():
 
 
     @staticmethod
-    def _breakdown(axx, params, tables, direction):
+    def _breakdown(
+        axx: axes.Axes,
+        params: dict,
+        tables: dict,
+        direction: str) -> axes.Axes:
 
         ratios = params['pie_params']['ratios_'+direction]
-        for j, _ in enumerate(ratios):
-            height = ratios[j]
+        for j, value in enumerate(ratios):
+            height = value
             axx.bar(params['pie_params']['xpos'],
                     height=height,
                     width=params['pie_params']['width'],

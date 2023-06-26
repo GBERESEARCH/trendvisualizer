@@ -82,7 +82,7 @@ class TrendStrength():
     None.
 
     """
-    def __init__(self, **kwargs):
+    def __init__(self, **kwargs) -> None:
 
         # Import dictionary of default parameters
         self.default_dict = copy.deepcopy(trend_params_dict)
@@ -123,7 +123,7 @@ class TrendStrength():
 
 
     @staticmethod
-    def _init_params(inputs):
+    def _init_params(inputs: dict) -> dict:
         """
         Initialise parameter dictionary
         Parameters
@@ -149,7 +149,9 @@ class TrendStrength():
 
 
     @staticmethod
-    def prepnorgate(params, mappings):
+    def prepnorgate(
+        params: dict,
+        mappings: dict) -> tuple[dict, dict, dict]:
         """
         Create dataframes of prices, extracting data from Norgate Data.
 
@@ -196,7 +198,9 @@ class TrendStrength():
 
 
     @staticmethod
-    def prepyahoo(params, mappings):
+    def prepyahoo(
+        params: dict,
+        mappings: dict) -> tuple[dict, dict, dict]:
         """
         Create dataframes of prices, extracting data from Yahoo Finance.
 
@@ -245,7 +249,10 @@ class TrendStrength():
 
 
     @staticmethod
-    def trendcalc(params, tables, mappings):
+    def trendcalc(
+        params: dict,
+        tables: dict,
+        mappings: dict) -> dict:
         """
         Calculate the technical indicator fields and Trend Strength table
 
@@ -277,7 +284,9 @@ class TrendStrength():
 
 
     @staticmethod
-    def top_trend_tickers(params, tables):
+    def top_trend_tickers(
+        params: dict,
+        tables: dict) -> tuple[dict, dict]:
         """
         Prepare list of top trending securities.
 
@@ -303,7 +312,7 @@ class TrendStrength():
         return top_trends, tables
 
 
-    def chart(self, chart_type, **kwargs):
+    def chart(self, chart_type: str, **kwargs) -> None:
         """
         Display the selcted chart of Trend Strength
 
