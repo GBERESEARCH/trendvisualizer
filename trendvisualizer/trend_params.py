@@ -187,6 +187,7 @@ trend_params_dict = {
         'source':'norgate',
         'tickers_adjusted':False,
         'tickers':None,
+        'data_output':False,
         'start_date':None,
         'end_date':None,
         'pie_tenor':50,
