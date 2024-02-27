@@ -338,11 +338,11 @@ class Formatting():
 
         if market_chart:
             # Select the specified number of highest values
-            data_list = list(barometer['Ticker'][:num_charts])
+            data_list = list(barometer['Ticker'].iloc[:num_charts])
 
         else:
             # Select the highest values
-            data_list = list(barometer['Ticker'][:mkts])
+            data_list = list(barometer['Ticker'].iloc[:mkts])
 
         return data_list
 
@@ -360,11 +360,11 @@ class Formatting():
 
         if market_chart:
             # Select the specified number of lowest values
-            data_list = list(barometer['Ticker'][-num_charts:])
+            data_list = list(barometer['Ticker'].iloc[-num_charts:])
 
         else:
             # Select the lowest values
-            data_list = list(barometer['Ticker'][-mkts:])
+            data_list = list(barometer['Ticker'].iloc[-mkts:])
 
         return data_list
 
@@ -382,11 +382,11 @@ class Formatting():
 
         if market_chart:
             # Select the specified number of lowest values
-            data_list = list(barometer['Ticker'][-num_charts:])
+            data_list = list(barometer['Ticker'].iloc[-num_charts:])
 
         else:
             # Select the lowest values
-            data_list = list(barometer['Ticker'][-mkts:])
+            data_list = list(barometer['Ticker'].iloc[-mkts:])
 
         return data_list
 
@@ -404,18 +404,18 @@ class Formatting():
 
         if market_chart:
             # Select the specified number of highest values
-            top = list(barometer['Ticker'][:int(num_charts/2)])
+            top = list(barometer['Ticker'].iloc[:int(num_charts/2)])
 
             # Select the lowest values
-            bottom = list(barometer['Ticker'][
+            bottom = list(barometer['Ticker'].iloc[
                 -(num_charts-int(num_charts/2)):])
 
         else:
             # Select the highest values
-            top = list(barometer['Ticker'][:int(mkts/2)])
+            top = list(barometer['Ticker'].iloc[:int(mkts/2)])
 
             # Select the lowest values
-            bottom = list(barometer['Ticker'][
+            bottom = list(barometer['Ticker'].iloc[
                 -(mkts-int(mkts/2)):])
 
         # Combine this data
@@ -437,32 +437,32 @@ class Formatting():
 
         if market_chart:
             # Select 1/3 of the specified number of highest values
-            top = list(barometer['Ticker'][:int(num_charts/3)])
+            top = list(barometer['Ticker'].iloc[:int(num_charts/3)])
 
             # Select 1/3 of the specified number of lowest values
-            bottom = list(barometer['Ticker'][-int(num_charts/3):])
+            bottom = list(barometer['Ticker'].iloc[-int(num_charts/3):])
 
             # Sort by Absolute Trend Strength
             barometer = barometer.sort_values(
                 by=['Absolute Trend Strength'], ascending=False)
 
             # Select 1/3 of the specified number of lowest values
-            neutral = list(barometer['Ticker'][
+            neutral = list(barometer['Ticker'].iloc[
                 -(num_charts-2*int(num_charts/3)):])
 
         else:
             # Select the highest values
-            top = list(barometer['Ticker'][:int(mkts/3)])
+            top = list(barometer['Ticker'].iloc[:int(mkts/3)])
 
             # Select the lowest values
-            bottom = list(barometer['Ticker'][-int(mkts/3):])
+            bottom = list(barometer['Ticker'].iloc[-int(mkts/3):])
 
             # Sort by Absolute Trend Strength
             barometer = barometer.sort_values(
                 by=['Absolute Trend Strength'], ascending=False)
 
             # Select the lowest values
-            neutral = list(barometer['Ticker'][
+            neutral = list(barometer['Ticker'].iloc[
                 -(mkts-2*int(mkts/3)):])
 
         # Combine this data

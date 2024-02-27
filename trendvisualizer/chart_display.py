@@ -124,9 +124,9 @@ class Graphs():
         barometer = barometer.sort_values(
             by=['Trend Strength %'], ascending=True)
 
-        plt.barh(barometer['Short_name'][-params['mkts']:],
-                 barometer['Trend Strength %'][-params['mkts']:],
-                 color=list(barometer['Trend Color'][-params['mkts']:]))
+        plt.barh(barometer['Short_name'].iloc[-params['mkts']:],
+                 barometer['Trend Strength %'].iloc[-params['mkts']:],
+                 color=list(barometer['Trend Color'].iloc[-params['mkts']:]))
         titlestr = 'Up'
 
         return ax1, titlestr
@@ -145,9 +145,9 @@ class Graphs():
         barometer = barometer.sort_values(
             by=['Trend Strength %'], ascending=False)
 
-        plt.barh(barometer['Short_name'][-params['mkts']:],
-                 barometer['Trend Strength %'][-params['mkts']:],
-                 color=list(barometer['Trend Color'][-params['mkts']:]))
+        plt.barh(barometer['Short_name'].iloc[-params['mkts']:],
+                 barometer['Trend Strength %'].iloc[-params['mkts']:],
+                 color=list(barometer['Trend Color'].iloc[-params['mkts']:]))
         titlestr = 'Down'
 
         return ax1, titlestr
@@ -166,9 +166,9 @@ class Graphs():
         barometer = barometer.sort_values(
             by=['Absolute Trend Strength %'], ascending=True)
 
-        plt.barh(barometer['Short_name'][:params['mkts']],
-                 barometer['Trend Strength %'][:params['mkts']],
-                 color=list(barometer['Trend Color'][:params['mkts']]),
+        plt.barh(barometer['Short_name'].iloc[:params['mkts']],
+                 barometer['Trend Strength %'].iloc[:params['mkts']],
+                 color=list(barometer['Trend Color'].iloc[:params['mkts']]),
                  #height=0.5,
                  )
         titlestr = 'Neutral'
@@ -189,9 +189,9 @@ class Graphs():
         barometer = barometer.sort_values(
             by=['Absolute Trend Strength %'], ascending=True)
 
-        plt.barh(barometer['Short_name'][-params['mkts']:],
-                 barometer['Trend Strength %'][-params['mkts']:],
-                 color=list(barometer['Trend Color'][-params['mkts']:]))
+        plt.barh(barometer['Short_name'].iloc[-params['mkts']:],
+                 barometer['Trend Strength %'].iloc[-params['mkts']:],
+                 color=list(barometer['Trend Color'].iloc[-params['mkts']:]))
         titlestr = 'Strongly'
 
         return ax1, titlestr
