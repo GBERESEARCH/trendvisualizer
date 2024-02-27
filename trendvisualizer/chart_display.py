@@ -24,7 +24,7 @@ class Graphs():
     def trendbarchart(
         cls,
         params: dict,
-        barometer: pd.DataFrame) -> None:
+        barometer: pd.DataFrame) -> dict | None:
         """
         Create a barchart of the most or least trending markets.
 
@@ -73,35 +73,65 @@ class Graphs():
         # Set the yticks to be horizontal
         plt.yticks(rotation=0)
 
+        trend_dict = {}
         # If the trend flag is set to 'up', show the markets with
         # greatest up trend indication
         if params['trend'] == 'up':
-            ax1, titlestr = cls._bar_up(
-                ax1=ax1, params=params, barometer=barometer)
+            ax1, trend_dict = cls._bar_up(
+                ax1=ax1, 
+                params=params, 
+                barometer=barometer,
+                trend_dict=trend_dict)
 
         # If the trend flag is set to 'down', show the markets with
         # greatest down trend indication
         elif params['trend'] == 'down':
-            ax1, titlestr = cls._bar_down(
-                ax1=ax1, params=params, barometer=barometer)
+            ax1, trend_dict = cls._bar_down(
+                ax1=ax1, 
+                params=params, 
+                barometer=barometer,
+                trend_dict=trend_dict)
 
         # If the trend flag is set to 'neutral', show the markets with
         # lowest trend indication
         elif params['trend'] == 'neutral':
-            ax1, titlestr = cls._bar_neutral(
-                ax1=ax1, params=params, barometer=barometer)
+            ax1, trend_dict = cls._bar_neutral(
+                ax1=ax1, 
+                params=params, 
+                barometer=barometer,
+                trend_dict=trend_dict)
 
         # If the trend flag is set to 'strong', show the markets with
         # greatest trend indication both up and down
         elif params['trend'] == 'strong':
-            ax1, titlestr = cls._bar_strong(
-                ax1=ax1, params=params, barometer=barometer)
+            ax1, trend_dict = cls._bar_strong(
+                ax1=ax1, 
+                params=params, 
+                barometer=barometer,
+                trend_dict=trend_dict)
+
+        trend_dict['xaxis_label'] = "Trend Strength"
+        trend_dict['chart_title'] = (
+            trend_dict['titlestr'] +
+            ' Trending Markets' +
+            ' - ' +
+            params['end_date']
+            )
+
+        if params['data_output']:
+            data_dict = {
+                'params': params,
+                'barometer': barometer,
+                'trend_dict': trend_dict
+            }
+
+            return data_dict
 
         # Label xaxis
-        plt.xlabel("Trend Strength", fontsize=font_scaler*1.2, labelpad=10)
+        plt.xlabel(trend_dict['xaxis_label'], fontsize=font_scaler*1.2, labelpad=10)
 
         # Set title
-        plt.suptitle(titlestr+' Trending Markets'+' - '+params['end_date'],
+        plt.suptitle(trend_dict['chart_title'],
                      fontsize=18,
                      fontweight=0,
                      color='black',
@@ -115,7 +145,8 @@ class Graphs():
     def _bar_up(
         ax1: axes.Axes,
         params: dict,
-        barometer: pd.DataFrame) -> tuple[axes.Axes, str]:
+        barometer: pd.DataFrame,
+        trend_dict: dict) -> tuple[axes.Axes, dict]:
 
         # Set the x-axis range
         ax1.set_xlim(left=0, right=1)
@@ -124,19 +155,31 @@ class Graphs():
         barometer = barometer.sort_values(
             by=['Trend Strength %'], ascending=True)
 
-        plt.barh(barometer['Short_name'].iloc[-params['mkts']:],
-                 barometer['Trend Strength %'].iloc[-params['mkts']:],
-                 color=list(barometer['Trend Color'].iloc[-params['mkts']:]))
+        short_name = barometer['Short_name'].iloc[-params['mkts']:]
+        trend_strength = barometer['Trend Strength %'].iloc[-params['mkts']:]
+        trend_color = list(barometer['Trend Color'].iloc[-params['mkts']:])
+
+        plt.barh(short_name,
+                 trend_strength,
+                 color=trend_color)
         titlestr = 'Up'
 
-        return ax1, titlestr
+        trend_dict = {
+            'short_name': short_name,
+            'trend_strength': trend_strength,
+            'trend_color': trend_color,
+            'titlestr': titlestr 
+        }
+
+        return ax1, trend_dict
 
 
     @staticmethod
     def _bar_down(
         ax1: axes.Axes,
         params: dict,
-        barometer: pd.DataFrame) -> tuple[axes.Axes, str]:
+        barometer: pd.DataFrame,
+        trend_dict: dict) -> tuple[axes.Axes, dict]:
 
         # Set the x-axis range
         ax1.set_xlim(left=-1, right=0)
@@ -145,19 +188,31 @@ class Graphs():
         barometer = barometer.sort_values(
             by=['Trend Strength %'], ascending=False)
 
-        plt.barh(barometer['Short_name'].iloc[-params['mkts']:],
-                 barometer['Trend Strength %'].iloc[-params['mkts']:],
-                 color=list(barometer['Trend Color'].iloc[-params['mkts']:]))
+        short_name = barometer['Short_name'].iloc[-params['mkts']:]
+        trend_strength = barometer['Trend Strength %'].iloc[-params['mkts']:]
+        trend_color = list(barometer['Trend Color'].iloc[-params['mkts']:])
+
+        plt.barh(short_name,
+                 trend_strength,
+                 color=trend_color)
         titlestr = 'Down'
 
-        return ax1, titlestr
+        trend_dict = {
+            'short_name': short_name,
+            'trend_strength': trend_strength,
+            'trend_color': trend_color,
+            'titlestr': titlestr 
+        }
+
+        return ax1, trend_dict
 
 
     @staticmethod
     def _bar_neutral(
         ax1: axes.Axes,
         params: dict,
-        barometer: pd.DataFrame) -> tuple[axes.Axes, str]:
+        barometer: pd.DataFrame,
+        trend_dict: dict) -> tuple[axes.Axes, dict]:
 
         # Set the x-axis range
         ax1.set_xlim(left=-1, right=1)
@@ -166,21 +221,31 @@ class Graphs():
         barometer = barometer.sort_values(
             by=['Absolute Trend Strength %'], ascending=True)
 
-        plt.barh(barometer['Short_name'].iloc[:params['mkts']],
-                 barometer['Trend Strength %'].iloc[:params['mkts']],
-                 color=list(barometer['Trend Color'].iloc[:params['mkts']]),
-                 #height=0.5,
-                 )
+        short_name = barometer['Short_name'].iloc[:params['mkts']]
+        trend_strength = barometer['Trend Strength %'].iloc[:params['mkts']]
+        trend_color = list(barometer['Trend Color'].iloc[:params['mkts']])
+
+        plt.barh(short_name,
+                 trend_strength,
+                 color=trend_color)
         titlestr = 'Neutral'
 
-        return ax1, titlestr
+        trend_dict = {
+            'short_name': short_name,
+            'trend_strength': trend_strength,
+            'trend_color': trend_color,
+            'titlestr': titlestr 
+        }
+
+        return ax1, trend_dict
 
 
     @staticmethod
     def _bar_strong(
         ax1: axes.Axes,
         params: dict,
-        barometer: pd.DataFrame) -> tuple[axes.Axes, str]:
+        barometer: pd.DataFrame,
+        trend_dict: dict) -> tuple[axes.Axes, dict]:
 
         # Set the x-axis range
         ax1.set_xlim(left=-1, right=1)
@@ -189,12 +254,23 @@ class Graphs():
         barometer = barometer.sort_values(
             by=['Absolute Trend Strength %'], ascending=True)
 
-        plt.barh(barometer['Short_name'].iloc[-params['mkts']:],
-                 barometer['Trend Strength %'].iloc[-params['mkts']:],
-                 color=list(barometer['Trend Color'].iloc[-params['mkts']:]))
+        short_name = barometer['Short_name'].iloc[-params['mkts']:]
+        trend_strength = barometer['Trend Strength %'].iloc[-params['mkts']:]
+        trend_color = list(barometer['Trend Color'].iloc[-params['mkts']:])
+
+        plt.barh(short_name,
+                 trend_strength,
+                 color=trend_color)
         titlestr = 'Strongly'
 
-        return ax1, titlestr
+        trend_dict = {
+            'short_name': short_name,
+            'trend_strength': trend_strength,
+            'trend_color': trend_color,
+            'titlestr': titlestr 
+        }
+
+        return ax1, trend_dict
 
 
     @classmethod
