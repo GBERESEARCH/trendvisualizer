@@ -13,7 +13,7 @@ class Formatting():
 
     """
     @staticmethod
-    def get_charttitle(params: dict) -> dict:
+    def get_chart_title(params: dict) -> dict:
         """
         Create title label for market chart
 
@@ -40,63 +40,65 @@ class Formatting():
         # and the chosen trend type to display
         if norm:
             if trend == 'up':
-                charttitle = ("Up Trending Markets"
+                chart_title = ("Up Trending Markets"
                               +" - Relative Return Over Last "
                               +str(days)+' Trading Days')
 
             if trend == 'down':
-                charttitle = ("Down Trending Markets"
+                chart_title = ("Down Trending Markets"
                               +" - Relative Return Over Last "
                               +str(days)+' Trading Days')
 
             if trend == 'strong':
-                charttitle = ("Most Strongly Trending Markets"
+                chart_title = ("Most Strongly Trending Markets"
                               +" - Relative Return Over Last "
                               +str(days)+' Trading Days')
 
             if trend == 'neutral':
-                charttitle = ("Neutral Trending Markets"
+                chart_title = ("Neutral Trending Markets"
                               +" - Relative Return Over Last "
                               +str(days)+' Trading Days')
 
             if trend == 'all':
-                charttitle = ("Most Strongly and Neutral Trending"
+                chart_title = ("Most Strongly and Neutral Trending"
                               +" Markets - Price Over Last "
                               +str(days)+' Trading Days')
 
         else:
             if trend == 'up':
-                charttitle = ("Up Trending Markets"
+                chart_title = ("Up Trending Markets"
                               +" - Price Over Last "
                               +str(days)+' Trading Days')
 
             if trend == 'down':
-                charttitle = ("Down Trending Markets"
+                chart_title = ("Down Trending Markets"
                               +" - Price Over Last "
                               +str(days)+' Trading Days')
 
             if trend == 'strong':
-                charttitle = ("Most Strongly Trending Markets"
+                chart_title = ("Most Strongly Trending Markets"
                               +" - Price Over Last "
                               +str(days)+' Trading Days')
 
             if trend == 'neutral':
-                charttitle = ("Neutral Trending Markets"
+                chart_title = ("Neutral Trending Markets"
                               +" - Price Over Last "
                               +str(days)+' Trading Days')
 
             if trend == 'all':
-                charttitle = ("Most Strongly and Neutral Trending"
+                chart_title = ("Most Strongly and Neutral Trending"
                               +" Markets - Price Over Last "
                               +str(days)+' Trading Days')
+        
+        chart_title = str(chart_title)
 
-        charttitle = charttitle+' - '+params['end_date']
+        chart_title = chart_title+' - '+params['end_date']
 
-        return charttitle
+        return chart_title
 
 
     @staticmethod
-    def mkt_dims(params: dict) -> dict:
+    def create_mkt_dims(params: dict) -> dict:
         """
         Create a tuple giving the height and width of the market chart
 
@@ -141,7 +143,7 @@ class Formatting():
 
 
     @classmethod
-    def normdata(
+    def create_normalized_data(
         cls,
         params: dict,
         tables: dict) -> pd.DataFrame:
@@ -176,7 +178,7 @@ class Formatting():
 
         """
 
-        chart_data = cls._chartdata(params=params, tables=tables)
+        chart_data = cls._create_chart_data(params=params, tables=tables)
 
         # Copy the selected number of days history from the input
         # DataFrame
@@ -191,7 +193,7 @@ class Formatting():
 
 
     @classmethod
-    def _chartdata(
+    def _create_chart_data(
         cls,
         params: dict,
         tables: dict) -> pd.DataFrame:
@@ -223,8 +225,12 @@ class Formatting():
 
         """
 
-        data_list = cls.datalist(
-            params, tables['barometer'], market_chart=False, num_charts=None)
+        data_list = cls.create_data_list(
+            params, 
+            tables['barometer'], 
+            market_chart=False, 
+            num_charts=None
+            )
 
         # Create a new DataFrame
         chart_data = pd.DataFrame()
@@ -244,12 +250,12 @@ class Formatting():
 
 
     @classmethod
-    def datalist(
+    def create_data_list(
         cls,
         params: dict,
         barometer: pd.DataFrame,
         market_chart: bool,
-        num_charts: int) -> list:
+        num_charts: int | None) -> list:
         """
         Create a list of the most / least trending markets.
 
@@ -287,7 +293,6 @@ class Formatting():
         # if trend flag is 'up', select tickers of most up trending
         # markets
         if trend == 'up':
-
             data_list = cls._uptrend(
                 barometer=barometer, market_chart=market_chart,
                 num_charts=num_charts, mkts=mkts)
@@ -295,7 +300,6 @@ class Formatting():
         # if trend flag is 'down', select tickers of most down trending
         # markets
         elif trend == 'down':
-
             data_list = cls._downtrend(
                 barometer=barometer, market_chart=market_chart,
                 num_charts=num_charts, mkts=mkts)
@@ -303,7 +307,6 @@ class Formatting():
         # if trend flag is 'neutral', select tickers of least trending
         # markets
         elif trend == 'neutral':
-
             data_list = cls._neutraltrend(
                 barometer=barometer, market_chart=market_chart,
                 num_charts=num_charts, mkts=mkts)
@@ -311,7 +314,6 @@ class Formatting():
         # if trend flag is 'strong', select tickers of most down trending
         # markets
         elif trend == 'strong':
-
             data_list = cls._strongtrend(
                 barometer=barometer, market_chart=market_chart,
                 num_charts=num_charts, mkts=mkts)
@@ -329,7 +331,7 @@ class Formatting():
     def _uptrend(
         barometer: pd.DataFrame,
         market_chart: bool,
-        num_charts: int,
+        num_charts: int | None,
         mkts: int) -> list:
 
         # Sort by Trend Strength
@@ -351,14 +353,14 @@ class Formatting():
     def _downtrend(
         barometer: pd.DataFrame,
         market_chart: bool,
-        num_charts: int,
+        num_charts: int | None,
         mkts: int) -> list:
 
         # Sort by Trend Strength
         barometer = barometer.sort_values(
             by=['Trend Strength'], ascending=False)
 
-        if market_chart:
+        if (market_chart and num_charts !=None) :
             # Select the specified number of lowest values
             data_list = list(barometer['Ticker'].iloc[-num_charts:])
 
@@ -373,14 +375,14 @@ class Formatting():
     def _neutraltrend(
         barometer: pd.DataFrame,
         market_chart: bool,
-        num_charts: int,
+        num_charts: int | None,
         mkts: int) -> list:
 
         # Sort by Absolute Trend Strength
         barometer = barometer.sort_values(
             by=['Absolute Trend Strength'], ascending=False)
 
-        if market_chart:
+        if (market_chart and num_charts !=None):
             # Select the specified number of lowest values
             data_list = list(barometer['Ticker'].iloc[-num_charts:])
 
@@ -395,14 +397,14 @@ class Formatting():
     def _strongtrend(
         barometer: pd.DataFrame,
         market_chart: bool,
-        num_charts: int,
+        num_charts: int | None,
         mkts: int) -> list:
 
         # Sort by Trend Strength
         barometer = barometer.sort_values(
             by=['Trend Strength'], ascending=False)
 
-        if market_chart:
+        if (market_chart and num_charts !=None):
             # Select the specified number of highest values
             top = list(barometer['Ticker'].iloc[:int(num_charts/2)])
 
@@ -428,14 +430,14 @@ class Formatting():
     def _mixedtrend(
         barometer: pd.DataFrame,
         market_chart: bool,
-        num_charts: int,
+        num_charts: int | None,
         mkts: int) -> list:
 
         # Sort by Trend Strength
         barometer = barometer.sort_values(
             by=['Trend Strength'], ascending=False)
 
-        if market_chart:
+        if (market_chart and num_charts !=None):
             # Select 1/3 of the specified number of highest values
             top = list(barometer['Ticker'].iloc[:int(num_charts/3)])
 
@@ -576,7 +578,7 @@ class Formatting():
             [params['trend_type'], params['sector_name']]]
 
         # Set the maximum height of the chart
-        params['plot_height'] = cls._setheight(
+        params['plot_height'] = cls._set_height(
             params=params, chart_barometer=chart_barometer,
             trend_sector_group=trend_sector_group)
 
@@ -593,7 +595,7 @@ class Formatting():
 
 
     @staticmethod
-    def _setheight(
+    def _set_height(
         params: dict,
         chart_barometer: pd.DataFrame,
         trend_sector_group: pd.DataFrame) -> float:

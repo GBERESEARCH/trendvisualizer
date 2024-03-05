@@ -8,8 +8,8 @@ from trendvisualizer.chart_display import Graphs
 from trendvisualizer.pie_charts import PieCharts
 from trendvisualizer.sector_mappings import sectmap
 from trendvisualizer.trend_params import trend_params_dict
-from trendvisualizer.trenddata import Fields, TrendRank
-from trendvisualizer.marketdata import NorgateExtract, YahooExtract, MktUtils
+from trendvisualizer.trend_data import Fields, TrendRank
+from trendvisualizer.market_data import NorgateExtract, YahooExtract, MktUtils
 
 
 class TrendStrength():
@@ -100,16 +100,16 @@ class TrendStrength():
 
         # Import the data from Norgate Data
         if params['source'] == 'norgate':
-            params, tables, mappings = self.prepnorgate(
+            params, tables, mappings = self.prep_norgate(
                  params=params, mappings=mappings)
 
         # Or from Yahoo Finance
         elif params['source'] == 'yahoo':
-            params, tables, mappings = self.prepyahoo(
+            params, tables, mappings = self.prep_yahoo(
                 params=params, mappings=mappings)
 
         # Calculate the technical indicator fields and Trend Strength table
-        tables = self.trendcalc(
+        tables = self.trend_calc(
             params=params, tables=tables, mappings=mappings)
 
         # Generate list of top trending securities
@@ -149,7 +149,7 @@ class TrendStrength():
 
 
     @staticmethod
-    def prepnorgate(
+    def prep_norgate(
         params: dict,
         mappings: dict) -> tuple[dict, dict, dict]:
         """
@@ -188,7 +188,7 @@ class TrendStrength():
         tables = {}
 
         # Create dictionaries of DataFrames of prices and ticker names
-        params, tables, mappings = NorgateExtract.importnorgate(
+        params, tables, mappings = NorgateExtract.import_norgate(
             params=params, tables=tables, mappings=mappings)
 
         # Remove tickers with short history
@@ -198,7 +198,7 @@ class TrendStrength():
 
 
     @staticmethod
-    def prepyahoo(
+    def prep_yahoo(
         params: dict,
         mappings: dict) -> tuple[dict, dict, dict]:
         """
@@ -224,7 +224,7 @@ class TrendStrength():
 
         # Create list of tickers, dictionary of ticker names from
         # Wikipedia
-        params, mappings = YahooExtract.tickerextract(
+        params, mappings = YahooExtract.ticker_extract(
             params=params, mappings=mappings)
 
         # Set short_name_dict = name_dict
@@ -240,7 +240,7 @@ class TrendStrength():
         tables = {}
 
         # Create dictionaries of DataFrames of prices and ticker names
-        params, tables = YahooExtract.importyahoo(params, tables)
+        params, tables = YahooExtract.import_yahoo(params, tables)
 
         # Remove tickers with short history
         tables = MktUtils.ticker_clean(params=params, tables=tables)
@@ -249,7 +249,7 @@ class TrendStrength():
 
 
     @staticmethod
-    def trendcalc(
+    def trend_calc(
         params: dict,
         tables: dict,
         mappings: dict) -> dict:
@@ -335,18 +335,18 @@ class TrendStrength():
             self.params[key] = value
 
         if chart_type == 'bar':
-            Graphs.trendbarchart(
+            Graphs.trend_barchart(
                 params=self.params, barometer=self.tables['barometer'])
 
         elif chart_type == 'returns':
-            Graphs.returnsgraph(params=self.params, tables=self.tables)
+            Graphs.returns_graph(params=self.params, tables=self.tables)
 
         elif chart_type == 'market':
-            self.params = Graphs.marketchart(
+            self.params = Graphs.market_chart(
                 params=self.params, tables=self.tables)
 
         elif chart_type == 'summary':
-            self.params, self.tables = Graphs.summaryplot(
+            self.params, self.tables = Graphs.summary_plot(
                 params=self.params, tables=self.tables)
 
         elif chart_type == 'pie_summary':

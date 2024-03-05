@@ -77,7 +77,7 @@ class NorgateExtract():
 
 
     @classmethod
-    def importnorgate(
+    def import_norgate(
         cls,
         params: dict,
         tables: dict,
@@ -130,17 +130,18 @@ class NorgateExtract():
                     end_date=params['end_date'],
                     format=timeseriesformat,)
 
-                data = data[['Open', 'High', 'Low', 'Close']]
+                if type(data) == pd.DataFrame:
+                    data = data[['Open', 'High', 'Low', 'Close']]
 
-                tables['raw_ticker_dict'][lowtick] = data
+                    tables['raw_ticker_dict'][lowtick] = data
 
-                # Extract the security name and store in ticker_name_dict
-                ticker_name = norgatedata.security_name(ticker)
-                params['ticker_name_dict'][lowtick] = ticker_name
+                    # Extract the security name and store in ticker_name_dict
+                    ticker_name = norgatedata.security_name(ticker)
+                    params['ticker_name_dict'][lowtick] = ticker_name
 
-                # Set the proper length of DataFrame to help filter out
-                # missing data
-                params = MktUtils.window_set(frame=data, params=params)
+                    # Set the proper length of DataFrame to help filter out
+                    # missing data
+                    params = MktUtils.window_set(frame=data, params=params)
 
             except IndexError:
                 print('Error importing : ', ticker)
@@ -216,7 +217,7 @@ class YahooExtract():
 
     """
     @staticmethod
-    def tickerextract(
+    def ticker_extract(
         params: dict,
         mappings: dict) -> tuple[dict, dict]:
         """
@@ -292,7 +293,7 @@ class YahooExtract():
 
 
     @classmethod
-    def importyahoo(
+    def import_yahoo(
         cls,
         params: dict,
         tables: dict) -> tuple[dict, dict]:
@@ -327,14 +328,14 @@ class YahooExtract():
 
             # Attempt to return the data for given ticker
             try:
-                tables['raw_ticker_dict'][sym], params = cls._returndata(
+                tables['raw_ticker_dict'][sym], params = cls._return_data(
                     ticker=sym, params=params)
 
             # If error, try replacing '.' with '-' in ticker
             except KeyError:
                 try:
                     sym_alt = sym.replace('.','-')
-                    tables['raw_ticker_dict'][sym], params = cls._returndata(
+                    tables['raw_ticker_dict'][sym], params = cls._return_data(
                         ticker=sym_alt, params=params)
 
                 # If error, add to list of exceptions and move to next
@@ -348,7 +349,7 @@ class YahooExtract():
 
 
     @staticmethod
-    def _returndata(
+    def _return_data(
         ticker: str,
         params: dict) -> tuple[pd.DataFrame, dict]:
         """

@@ -21,7 +21,7 @@ class Graphs():
 
     """
     @classmethod
-    def trendbarchart(
+    def trend_barchart(
         cls,
         params: dict,
         barometer: pd.DataFrame) -> dict | None:
@@ -274,7 +274,7 @@ class Graphs():
 
 
     @classmethod
-    def returnsgraph(
+    def returns_graph(
         cls,
         params: dict,
         tables: dict) -> None:
@@ -306,7 +306,7 @@ class Graphs():
 
         """
 
-        tenor = Formatting.normdata(params=params, tables=tables)
+        tenor = Formatting.create_normalized_data(params=params, tables=tables)
 
         # Initialize the figure
         plt.style.use('seaborn-darkgrid')
@@ -431,7 +431,7 @@ class Graphs():
 
 
     @classmethod
-    def marketchart(
+    def market_chart(
         cls,
         params: dict,
         tables: dict) -> dict:
@@ -469,12 +469,12 @@ class Graphs():
         # If a mkts parameter has been specified then create a tuple of chart
         # dimensions
         if params['chart_mkts'] is not None:
-            params = Formatting.mkt_dims(params)
+            params = Formatting.create_mkt_dims(params)
 
         params['num_charts'] = int(
             params['chart_dimensions'][0] * params['chart_dimensions'][1])
 
-        data_list = Formatting.datalist(
+        data_list = Formatting.create_data_list(
             params=params, barometer=tables['barometer'], market_chart=True,
             num_charts=params['num_charts'])
 
@@ -545,16 +545,16 @@ class Graphs():
                       color='black' )
 
             # axis formatting
-            ax1 = cls._market_ticks(ax1, params)
+            ax1 = cls._set_market_ticks(ax1, params)
 
             # Set xtick labels at 70 degrees
             plt.xticks(rotation=70)
 
         # Create chart title label
-        params['charttitle'] = Formatting.get_charttitle(params=params)
+        params['charttitle'] = Formatting.get_chart_title(params=params)
 
         # general title
-        fig.suptitle(params['charttitle'],
+        fig.suptitle(params['chart_title'],
                      fontsize=20,
                      fontweight=0,
                      color='black',
@@ -565,7 +565,7 @@ class Graphs():
 
 
     @staticmethod
-    def _market_ticks(
+    def _set_market_ticks(
         ax1: axes.Axes,
         params: dict) -> axes.Axes:
 
@@ -614,7 +614,7 @@ class Graphs():
 
 
     @classmethod
-    def summaryplot(
+    def summary_plot(
         cls,
         params: dict,
         tables: dict) -> tuple[dict, dict]:
@@ -701,16 +701,17 @@ class Graphs():
         params: dict,
         tables: dict) -> axes.Axes:
 
-        ax1 = sns.swarmplot(data=tables['chart_barometer'],
-                            x=params['trend_type'],
-                            y="Trend",
-                            hue=params['sector_name'],
-                            hue_order=params['sector_list'],
-                            dodge=params['dodge'],
-                            palette='cubehelix',
-                            marker=params['marker'],
-                            s=params['marker_size']
-                           )
+        ax1 = sns.swarmplot(
+            data=tables['chart_barometer'],
+            x=params['trend_type'],
+            y="Trend",
+            hue=params['sector_name'],
+            hue_order=params['sector_list'],
+            dodge=params['dodge'],
+            palette='cubehelix',
+            marker=params['marker'],
+            s=params['marker_size']
+            )
 
         ax1.set(ylabel="")
         ax1.set_xlabel(params['trend_type'], fontsize=12)
