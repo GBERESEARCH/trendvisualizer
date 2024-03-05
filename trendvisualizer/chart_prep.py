@@ -13,7 +13,7 @@ class Formatting():
 
     """
     @staticmethod
-    def get_chart_title(params: dict) -> dict:
+    def get_chart_title(params: dict) -> str:
         """
         Create title label for market chart
 
@@ -293,34 +293,34 @@ class Formatting():
         # if trend flag is 'up', select tickers of most up trending
         # markets
         if trend == 'up':
-            data_list = cls._uptrend(
+            data_list = cls._up_trend(
                 barometer=barometer, market_chart=market_chart,
                 num_charts=num_charts, mkts=mkts)
 
         # if trend flag is 'down', select tickers of most down trending
         # markets
         elif trend == 'down':
-            data_list = cls._downtrend(
+            data_list = cls._down_trend(
                 barometer=barometer, market_chart=market_chart,
                 num_charts=num_charts, mkts=mkts)
 
         # if trend flag is 'neutral', select tickers of least trending
         # markets
         elif trend == 'neutral':
-            data_list = cls._neutraltrend(
+            data_list = cls._neutral_trend(
                 barometer=barometer, market_chart=market_chart,
                 num_charts=num_charts, mkts=mkts)
 
         # if trend flag is 'strong', select tickers of most down trending
         # markets
         elif trend == 'strong':
-            data_list = cls._strongtrend(
+            data_list = cls._strong_trend(
                 barometer=barometer, market_chart=market_chart,
                 num_charts=num_charts, mkts=mkts)
 
         # Otherwise select all 3
         else:
-            data_list = cls._mixedtrend(
+            data_list = cls._mixed_trend(
                 barometer=barometer, market_chart=market_chart,
                 num_charts=num_charts, mkts=mkts)
 
@@ -328,7 +328,7 @@ class Formatting():
 
 
     @staticmethod
-    def _uptrend(
+    def _up_trend(
         barometer: pd.DataFrame,
         market_chart: bool,
         num_charts: int | None,
@@ -350,7 +350,7 @@ class Formatting():
 
 
     @staticmethod
-    def _downtrend(
+    def _down_trend(
         barometer: pd.DataFrame,
         market_chart: bool,
         num_charts: int | None,
@@ -372,7 +372,7 @@ class Formatting():
 
 
     @staticmethod
-    def _neutraltrend(
+    def _neutral_trend(
         barometer: pd.DataFrame,
         market_chart: bool,
         num_charts: int | None,
@@ -394,7 +394,7 @@ class Formatting():
 
 
     @staticmethod
-    def _strongtrend(
+    def _strong_trend(
         barometer: pd.DataFrame,
         market_chart: bool,
         num_charts: int | None,
@@ -427,7 +427,7 @@ class Formatting():
 
 
     @staticmethod
-    def _mixedtrend(
+    def _mixed_trend(
         barometer: pd.DataFrame,
         market_chart: bool,
         num_charts: int | None,

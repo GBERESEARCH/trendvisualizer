@@ -357,7 +357,7 @@ class Fields():
         """
 
         # Prepare dataframe from ticker_dict
-        frame = cls._prepframe(params, ticker_dict)
+        frame = cls._prep_frame(params, ticker_dict)
 
         # Loop through each ticker in ticker_dict to populate trend
         # flags in frame
@@ -399,7 +399,7 @@ class Fields():
 
 
     @staticmethod
-    def _prepframe(
+    def _prep_frame(
         params: dict,
         ticker_dict: dict) -> pd.DataFrame:
 

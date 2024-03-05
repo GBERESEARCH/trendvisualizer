@@ -551,7 +551,7 @@ class Graphs():
             plt.xticks(rotation=70)
 
         # Create chart title label
-        params['charttitle'] = Formatting.get_chart_title(params=params)
+        params['chart_title'] = Formatting.get_chart_title(params=params)
 
         # general title
         fig.suptitle(params['chart_title'],
