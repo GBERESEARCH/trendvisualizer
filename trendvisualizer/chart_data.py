@@ -1,6 +1,7 @@
 import numpy as np
 import pandas as pd
 import collections
+from trendvisualizer.chart_prep import Formatting
 
 class Data():
     """
@@ -73,3 +74,52 @@ class Data():
 
         return bar_dict
     
+
+    @staticmethod
+    def returns_data(params: dict, tables: dict) -> dict:        
+        """
+        Create data dictionary for plotting line graph trends
+
+        Parameters
+        ----------
+        params : Dict
+                mkts : Int
+                    Number of markets to chart. The default is 5.
+                trend : Str
+                    Flag to select most or least trending markets.
+                    Select from: 'up' - strongly trending upwards,
+                                'down - strongly trending downwards,
+                                'neutral' - weak trend,
+                                'strong' - up and down trends,
+                                'all' - up down and weak trends
+                    The default is 'strong' which displays both up-trending
+                    and down-trending markets.
+                days : Int
+                    Number of days of history. The default is 60.
+            tables : Dict
+                Dictionary of key tables.
+
+        Returns
+        -------
+        returns_dict : Dict
+            Dictionary of data to create a line graph of normalised price history.
+
+        """
+        # Generate DataFrame of normalized returns
+        tenor = Formatting.create_normalized_data(params=params, tables=tables)
+
+        # Create empty returns dict & add returns and labels
+        returns_dict = {}
+        returns_dict['time_series'] = tenor.to_dict()
+        returns_dict['xlabel'] = 'Date'
+        returns_dict['ylabel'] = 'Return %'
+        returns_dict['line_labels'] = tenor.columns.to_list()
+        returns_dict['titlestr'] = (
+            'Relative Return Over Last ' +
+            str(len(tenor)) +
+            ' Trading Days' +
+            ' - ' +
+            params['end_date']
+            )
+
+        return returns_dict
