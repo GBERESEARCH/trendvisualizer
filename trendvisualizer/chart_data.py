@@ -11,7 +11,7 @@ class Data():
     @staticmethod
     def bar_data(barometer: pd.DataFrame, mkts: int=20) -> dict:
         """
-        Create data dictionary for plotting barchart trends
+        Create data dictionary for plotting barchart trends.
 
         Parameters
         ----------
@@ -22,8 +22,8 @@ class Data():
 
         Returns
         -------
-        bar_dict : TYPE
-            DESCRIPTION.
+        bar_dict : Dict
+            Data dictionary for plotting barchart trends.
 
         """
         bar_dict = collections.defaultdict(dict)
@@ -78,26 +78,26 @@ class Data():
     @staticmethod
     def returns_data(params: dict, tables: dict) -> dict:        
         """
-        Create data dictionary for plotting line graph trends
+        Create data dictionary for plotting line graph trends.
 
         Parameters
         ----------
         params : Dict
-                mkts : Int
-                    Number of markets to chart. The default is 5.
-                trend : Str
-                    Flag to select most or least trending markets.
-                    Select from: 'up' - strongly trending upwards,
-                                'down - strongly trending downwards,
-                                'neutral' - weak trend,
-                                'strong' - up and down trends,
-                                'all' - up down and weak trends
-                    The default is 'strong' which displays both up-trending
-                    and down-trending markets.
-                days : Int
-                    Number of days of history. The default is 60.
-            tables : Dict
-                Dictionary of key tables.
+            mkts : Int
+                Number of markets to chart. The default is 5.
+            trend : Str
+                Flag to select most or least trending markets.
+                Select from: 'up' - strongly trending upwards,
+                            'down - strongly trending downwards,
+                            'neutral' - weak trend,
+                            'strong' - up and down trends,
+                            'all' - up down and weak trends
+                The default is 'strong' which displays both up-trending
+                and down-trending markets.
+            days : Int
+                Number of days of history. The default is 60.
+        tables : Dict
+            Dictionary of key tables.
 
         Returns
         -------
@@ -123,3 +123,75 @@ class Data():
             )
 
         return returns_dict
+    
+
+    @staticmethod
+    def market_chart_data(params: dict, tables: dict) -> dict:
+        """
+        Create a data dictionary for plotting a summary of the strength of trend 
+        across markets.
+
+        Parameters
+        ----------
+        params : Dict
+            chart_mkts : Int (Optional)
+                Number of markets to chart. The default is None.
+            chart_dimensions : Tuple
+                Width and height to determine the number of markets to chart. The 
+                default is (8, 5)
+            trend : Str
+                Flag to select most or least trending markets.
+                Select from: 'up' - strongly trending upwards,
+                            'down - strongly trending downwards,
+                            'neutral' - weak trend,
+                            'strong' - up and down trends,
+                            'all' - up down and weak trends
+                The default is 'strong' which displays both up-trending
+                and down-trending markets.
+            days : Int
+                Number of days of history. The default is 60.
+        tables : Dict
+            Dictionary of key tables.
+
+        Returns
+        -------
+        market_dict : Dict
+            Data dictionary for plotting a summary of the strength of trend across 
+            markets
+
+        """
+        if params['chart_mkts'] is not None:
+            params = Formatting.create_mkt_dims(params)
+        
+        params['num_charts'] = int(
+            params['chart_dimensions'][0] * params['chart_dimensions'][1])
+        
+        data_list = Formatting.create_data_list(
+            params=params, barometer=tables['barometer'], market_chart=True,
+            num_charts=params['num_charts'])
+
+        market_dict = collections.defaultdict(dict)
+        market_dict['tickers'] = collections.defaultdict(dict)
+        
+        
+        for ticker in data_list:
+            market_dict['tickers'][ticker]['label'] = params['ticker_short_name_dict'][ticker]
+        
+            market_dict['tickers'][ticker]['axis_dates'] = (
+                tables['ticker_dict'][ticker]
+                .index[-params['days']:]
+                ).date.tolist()
+            market_dict['tickers'][ticker]['axis_prices_norm'] = np.array(
+                tables['ticker_dict'][ticker]['Close'][-params['days']:]
+                .div(tables['ticker_dict'][ticker]['Close'][
+                    -params['days']:].iloc[0])
+                .mul(100))
+        
+            market_dict['tickers'][ticker]['axis_prices'] = np.array(
+                tables['ticker_dict'][ticker]['Close'][-params['days']:])
+        
+        market_dict = dict(market_dict)
+        market_dict['tickers'] = dict(market_dict['tickers'])
+        market_dict['chart_title'] = Formatting.get_chart_title(params=params) # type: ignore comment;
+        
+        return market_dict
