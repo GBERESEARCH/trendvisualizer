@@ -8,8 +8,55 @@ class Data():
     Create data dictionaries to display various charts of Trend Strength
 
     """
+    @classmethod
+    def get_all_data(cls, params, tables):
+        """
+        Create data dictionary for graphing of barchart, returns and market charts.
+
+        Parameters
+        ----------
+        params : Dict
+            mkts : Int
+                Number of markets to chart. The default is 20.
+            chart_mkts : Int (Optional)
+                Number of markets to chart. The default is None.
+            chart_dimensions : Tuple
+                Width and height to determine the number of markets to chart. The
+                default is (8, 5)
+            trend : Str
+                Flag to select most or least trending markets.
+                Select from: 'up' - strongly trending upwards,
+                            'down - strongly trending downwards,
+                            'neutral' - weak trend,
+                            'strong' - up and down trends,
+                            'all' - up down and weak trends
+                The default is 'strong' which displays both up-trending
+                and down-trending markets.
+            days : Int
+                Number of days of history. The default is 60.
+        tables : Dict
+            Dictionary of key tables.
+
+        Returns
+        -------
+        data_dict : Dict
+            Data dictionary for graphing of barchart, returns and market charts.
+
+        """
+        data_dict = {}
+        barometer = tables['barometer']
+        mkts = params['mkts']
+        data_dict['bar_dict'] = cls.get_bar_data(barometer=barometer, mkts=mkts)
+        data_dict['returns_dict'] = cls.get_returns_data(
+            params=params, tables=tables)
+        data_dict['market_dict'] = cls.get_market_chart_data(
+            params=params, tables=tables)
+        
+        return data_dict
+
+
     @staticmethod
-    def bar_data(barometer: pd.DataFrame, mkts: int=20) -> dict:
+    def get_bar_data(barometer: pd.DataFrame, mkts: int=20) -> dict:
         """
         Create data dictionary for plotting barchart trends.
 
@@ -76,7 +123,7 @@ class Data():
     
 
     @staticmethod
-    def returns_data(params: dict, tables: dict) -> dict:        
+    def get_returns_data(params: dict, tables: dict) -> dict:        
         """
         Create data dictionary for plotting line graph trends.
 
@@ -107,6 +154,8 @@ class Data():
         """
         # Generate DataFrame of normalized returns
         tenor = Formatting.create_normalized_data(params=params, tables=tables)
+        #tenor.index = tenor.index.astype(pd.DatetimeIndex)
+        tenor.index = tenor.index.date # type: ignore comment;
 
         # Create empty returns dict & add returns and labels
         returns_dict = {}
@@ -126,7 +175,7 @@ class Data():
     
 
     @staticmethod
-    def market_chart_data(params: dict, tables: dict) -> dict:
+    def get_market_chart_data(params: dict, tables: dict) -> dict:
         """
         Create a data dictionary for plotting a summary of the strength of trend 
         across markets.
