@@ -4,6 +4,7 @@ results
 
 """
 import copy
+from trendvisualizer.chart_data import Data
 from trendvisualizer.chart_display import Graphs
 from trendvisualizer.pie_charts import PieCharts
 from trendvisualizer.sector_mappings import sectmap
@@ -116,10 +117,14 @@ class TrendStrength():
         top_trends, tables = self.top_trend_tickers(
             params=params, tables=tables)
 
+        # Generate data dictionary for graphing via API
+        data_dict = Data.get_all_data(params=params, tables=tables)
+
         self.top_trends = top_trends
         self.tables = tables
         self.params = params
         self.mappings = mappings
+        self.data_dict = data_dict
 
 
     @staticmethod
