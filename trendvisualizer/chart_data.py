@@ -155,7 +155,7 @@ class Data():
         # Generate DataFrame of normalized returns
         tenor = Formatting.create_normalized_data(params=params, tables=tables)
         #tenor.index = tenor.index.astype(pd.DatetimeIndex)
-        tenor.index = tenor.index.date # type: ignore comment;
+        tenor.index = tenor.index.date.astype(str) # type: ignore comment;
 
         # Create empty returns dict & add returns and labels
         returns_dict = {}
