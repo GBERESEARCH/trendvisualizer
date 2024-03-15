@@ -45,8 +45,7 @@ class Data():
         """
         data_dict = {}
         barometer = tables['barometer']
-        mkts = params['mkts']
-        data_dict['bar_dict'] = cls.get_bar_data(barometer=barometer, mkts=mkts)
+        data_dict['bar_dict'] = cls.get_bar_data(barometer=barometer, params=params)
         data_dict['returns_dict'] = cls.get_returns_data(
             params=params, tables=tables)
         data_dict['market_dict'] = cls.get_market_chart_data(
@@ -56,7 +55,7 @@ class Data():
 
 
     @staticmethod
-    def get_bar_data(barometer: pd.DataFrame, mkts: int=20) -> dict:
+    def get_bar_data(barometer: pd.DataFrame, params: dict) -> dict:
         """
         Create data dictionary for plotting barchart trends.
 
@@ -74,7 +73,7 @@ class Data():
 
         """
         bar_dict = collections.defaultdict(dict)
-
+        mkts = params['mkts']
         # Create entries for up trend
         barometer_up = barometer.sort_values(
             by=['Trend Strength %'], ascending=True)
@@ -85,6 +84,15 @@ class Data():
         bar_dict['up']['trend_color'] = list(
             barometer_up['Trend Color'].iloc[-mkts:])
         bar_dict['up']['titlestr'] = 'Up'
+        bar_dict['up']['chart_title'] = (
+            'Top ' +
+            str(mkts) +
+            ' '+
+            bar_dict['up']['titlestr'] +
+            ' Trending Markets' +
+            ' - ' +
+            params['end_date']
+            )
 
         # Create entries for down trend
         barometer_down = barometer.sort_values(
@@ -96,6 +104,15 @@ class Data():
         bar_dict['down']['trend_color'] = list(
             barometer_down['Trend Color'].iloc[-mkts:])
         bar_dict['down']['titlestr'] = 'Down'
+        bar_dict['down']['chart_title'] = (
+            'Top ' +
+            str(mkts) +
+            ' '+
+            bar_dict['down']['titlestr'] +
+            ' Trending Markets' +
+            ' - ' +
+            params['end_date']
+            )
 
         # Create entries for neutral trend
         barometer_neutral = barometer.sort_values(
@@ -107,6 +124,15 @@ class Data():
         bar_dict['neutral']['trend_color'] = list(
             barometer_neutral['Trend Color'].iloc[:mkts])
         bar_dict['neutral']['titlestr'] = 'Neutral'
+        bar_dict['neutral']['chart_title'] = (
+            'Top ' +
+            str(mkts) +
+            ' '+
+            bar_dict['neutral']['titlestr'] +
+            ' Trending Markets' +
+            ' - ' +
+            params['end_date']
+            )
 
         # Create entries for strong trend
         bar_dict['strongly']['short_name'] = list(
@@ -116,6 +142,15 @@ class Data():
         bar_dict['strongly']['trend_color'] = list(
             barometer_neutral['Trend Color'].iloc[-mkts:])
         bar_dict['strongly']['titlestr'] = 'Strongly'
+        bar_dict['strongly']['chart_title'] = (
+            'Top ' +
+            str(mkts) +
+            ' '+
+            bar_dict['strongly']['titlestr'] +
+            ' Trending Markets' +
+            ' - ' +
+            params['end_date']
+            )
 
         bar_dict = dict(bar_dict)
 
