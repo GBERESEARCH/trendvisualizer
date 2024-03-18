@@ -198,7 +198,7 @@ class Data():
         returns_dict['xlabel'] = 'Date'
         returns_dict['ylabel'] = 'Return %'
         returns_dict['line_labels'] = tenor.columns.to_list()
-        returns_dict['titlestr'] = (
+        returns_dict['chart_title'] = (
             'Relative Return Over Last ' +
             str(len(tenor)) +
             ' Trading Days' +
