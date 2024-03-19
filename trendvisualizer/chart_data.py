@@ -74,91 +74,55 @@ class Data():
         """
         bar_dict = collections.defaultdict(dict)
         mkts = params['mkts']
+
         # Create entries for up trend
-        barometer_up = barometer.sort_values(
-            by=['Trend Strength %'], ascending=True)
+        barometer_up = barometer.sort_values(by=['Trend Strength %'], ascending=True)
         bar_dict['up']['short_name'] = list(
             barometer_up['Short_name'].iloc[-mkts:])
-        bar_dict['up']['trend_strength'] = np.array(
-            barometer_up['Trend Strength %'].iloc[-mkts:])
+        bar_dict['up']['trend_strength'] = np.round(
+            np.array(barometer_up['Trend Strength %'].iloc[-mkts:]), 4)
         bar_dict['up']['trend_color'] = list(
             barometer_up['Trend Color'].iloc[-mkts:])
         bar_dict['up']['titlestr'] = 'Up'
-        bar_dict['up']['chart_title'] = (
-            'Top ' +
-            str(mkts) +
-            ' '+
-            bar_dict['up']['titlestr'] +
-            ' Trending Markets' +
-            ' - ' +
-            params['end_date']
-            )
 
         # Create entries for down trend
         barometer_down = barometer.sort_values(
             by=['Trend Strength %'], ascending=False)
         bar_dict['down']['short_name'] = list(
             barometer_down['Short_name'].iloc[-mkts:])
-        bar_dict['down']['trend_strength'] = np.array(
-            barometer_down['Trend Strength %'].iloc[-mkts:])
+        bar_dict['down']['trend_strength'] = np.round(
+            np.array(barometer_down['Trend Strength %'].iloc[-mkts:]), 4)
         bar_dict['down']['trend_color'] = list(
             barometer_down['Trend Color'].iloc[-mkts:])
         bar_dict['down']['titlestr'] = 'Down'
-        bar_dict['down']['chart_title'] = (
-            'Top ' +
-            str(mkts) +
-            ' '+
-            bar_dict['down']['titlestr'] +
-            ' Trending Markets' +
-            ' - ' +
-            params['end_date']
-            )
 
         # Create entries for neutral trend
         barometer_neutral = barometer.sort_values(
             by=['Absolute Trend Strength %'], ascending=True)
         bar_dict['neutral']['short_name'] = list(
             barometer_neutral['Short_name'].iloc[:mkts])
-        bar_dict['neutral']['trend_strength'] = np.array(
-            barometer_neutral['Trend Strength %'].iloc[:mkts])
+        bar_dict['neutral']['trend_strength'] = np.round(
+            np.array(barometer_neutral['Trend Strength %'].iloc[:mkts]), 4)
         bar_dict['neutral']['trend_color'] = list(
             barometer_neutral['Trend Color'].iloc[:mkts])
         bar_dict['neutral']['titlestr'] = 'Neutral'
-        bar_dict['neutral']['chart_title'] = (
-            'Top ' +
-            str(mkts) +
-            ' '+
-            bar_dict['neutral']['titlestr'] +
-            ' Trending Markets' +
-            ' - ' +
-            params['end_date']
-            )
 
         # Create entries for strong trend
         bar_dict['strongly']['short_name'] = list(
             barometer_neutral['Short_name'].iloc[-mkts:])
-        bar_dict['strongly']['trend_strength'] = np.array(
-            barometer_neutral['Trend Strength %'].iloc[-mkts:])
+        bar_dict['strongly']['trend_strength'] = np.round(
+            np.array(barometer_neutral['Trend Strength %'].iloc[-mkts:]), 4)
         bar_dict['strongly']['trend_color'] = list(
             barometer_neutral['Trend Color'].iloc[-mkts:])
         bar_dict['strongly']['titlestr'] = 'Strongly'
-        bar_dict['strongly']['chart_title'] = (
-            'Top ' +
-            str(mkts) +
-            ' '+
-            bar_dict['strongly']['titlestr'] +
-            ' Trending Markets' +
-            ' - ' +
-            params['end_date']
-            )
 
         bar_dict = dict(bar_dict)
 
         return bar_dict
     
 
-    @staticmethod
-    def get_returns_data(params: dict, tables: dict) -> dict:        
+    @classmethod
+    def get_returns_data(cls, params: dict, tables: dict) -> dict:        
         """
         Create data dictionary for plotting line graph trends.
 
@@ -194,7 +158,15 @@ class Data():
 
         # Create empty returns dict & add returns and labels
         returns_dict = {}
-        returns_dict['time_series'] = tenor.to_dict()
+        returns_dict['time_series'] = {}
+        for num, label in enumerate(tenor.columns):
+            returns_dict['time_series'][num] = {}
+            returns_dict['time_series'][num]['label'] = label
+            returns_dict['time_series'][num]['data'] = tenor[label].to_dict()
+
+        returns_dict['time_series'] = cls._round_floats(
+            returns_dict['time_series']
+            )
         returns_dict['xlabel'] = 'Date'
         returns_dict['ylabel'] = 'Return %'
         returns_dict['line_labels'] = tenor.columns.to_list()
@@ -256,26 +228,43 @@ class Data():
 
         market_dict = collections.defaultdict(dict)
         market_dict['tickers'] = collections.defaultdict(dict)
-        
-        
-        for ticker in data_list:
-            market_dict['tickers'][ticker]['label'] = params['ticker_short_name_dict'][ticker]
-        
-            market_dict['tickers'][ticker]['axis_dates'] = (
+                
+        for num, ticker in enumerate(data_list):
+            market_dict['tickers'][num]['label'] = params[
+                'ticker_short_name_dict'][ticker]
+            market_dict['tickers'][num]['ticker'] = ticker
+
+            market_dict['tickers'][num]['axis_dates'] = (
                 tables['ticker_dict'][ticker]
                 .index[-params['days']:]
                 ).date.tolist()
-            market_dict['tickers'][ticker]['axis_prices_norm'] = np.array(
-                tables['ticker_dict'][ticker]['Close'][-params['days']:]
+            market_dict['tickers'][num]['axis_prices_norm'] = np.round(
+                np.array(tables['ticker_dict'][ticker]['Close'][
+                    -params['days']:]
                 .div(tables['ticker_dict'][ticker]['Close'][
                     -params['days']:].iloc[0])
-                .mul(100))
-        
-            market_dict['tickers'][ticker]['axis_prices'] = np.array(
-                tables['ticker_dict'][ticker]['Close'][-params['days']:])
+                .mul(100)), 2)
+
+            market_dict['tickers'][num]['axis_prices'] = np.round(
+                np.array(tables['ticker_dict'][ticker]['Close'][
+                    -params['days']:]), 2)
         
         market_dict = dict(market_dict)
         market_dict['tickers'] = dict(market_dict['tickers'])
         market_dict['chart_title'] = Formatting.get_chart_title(params=params) # type: ignore comment;
         
         return market_dict
+    
+
+    @classmethod
+    def _round_floats(cls, obj):
+        if isinstance(obj, float): return round(obj, 2)
+        if isinstance(obj, dict): return {
+            k: cls._round_floats(v) for k, v in obj.items()
+            }
+        if isinstance(obj, (list, tuple)): return [
+            cls._round_floats(x) for x in obj
+            ]
+        
+        return obj
+    
