@@ -181,8 +181,8 @@ class Data():
         return returns_dict
     
 
-    @staticmethod
-    def get_market_chart_data(params: dict, tables: dict) -> dict:
+    @classmethod
+    def get_market_chart_data(cls, params: dict, tables: dict) -> dict:
         """
         Create a data dictionary for plotting a summary of the strength of trend 
         across markets.
@@ -235,19 +235,19 @@ class Data():
             market_dict['tickers'][num]['ticker'] = ticker
 
             market_dict['tickers'][num]['axis_dates'] = (
-                tables['ticker_dict'][ticker]
-                .index[-params['days']:]
+                tables['ticker_dict'][ticker].index[-params['days']:]
                 ).date.tolist()
-            market_dict['tickers'][num]['axis_prices_norm'] = np.round(
-                np.array(tables['ticker_dict'][ticker]['Close'][
-                    -params['days']:]
-                .div(tables['ticker_dict'][ticker]['Close'][
-                    -params['days']:].iloc[0])
-                .mul(100)), 2)
+            market_dict['tickers'][num][
+                'axis_prices_norm'] = cls._round_floats(
+                    np.array(tables['ticker_dict'][ticker]['Close'][
+                        -params['days']:].div(tables['ticker_dict'][
+                            ticker]['Close'][-params['days']:].iloc[0])
+                            .mul(100)).tolist()
+                            )
 
-            market_dict['tickers'][num]['axis_prices'] = np.round(
+            market_dict['tickers'][num]['axis_prices'] = cls._round_floats(
                 np.array(tables['ticker_dict'][ticker]['Close'][
-                    -params['days']:]), 2)
+                    -params['days']:]).tolist())
         
         market_dict = dict(market_dict)
         market_dict['tickers'] = dict(market_dict['tickers'])
