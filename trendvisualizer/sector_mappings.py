@@ -148,6 +148,7 @@ sectmap = {
         '&DC':('Commodities','Diversified Agriculture', 'Agriculture', 'Softs', 'Milk - Class III'), # Milk - Class III
         '&DX':('Currencies', 'G10 Currencies', 'G10 Currencies', 'G10 Currencies', 'Benchmark'), # US Dollar Index
         '&EH':('Commodities', 'Energy', 'Petroleum', 'Petroleum', 'Ethanol'), # Ethanol
+        '&ETH':('Equity Indices', 'Equity Indices','Equity Indices','Equity Indices', 'Ether'), # Ether
         '&EMD':('Equity Indices', 'Equity Indices','Equity Indices','Equity Indices', 'S&P MidCap 400 E-mini'), # S&P MidCap 400 E-mini
         '&ES':('Equity Indices', 'Equity Indices','Equity Indices','Equity Indices', 'S&P 500 E-mini'), # S&P 500 E-mini
         '&EUA':('Commodities', 'Energy', 'Energy', 'Energy', 'EUA (Carbon Emissions)'), # EUA (Carbon Emissions)
