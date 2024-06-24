@@ -19,11 +19,13 @@ sectmap = {
         '&CGB_CCB':('Bonds','Government Bonds','Government Bonds','Government Bonds', 'Canadian 10y'), # Canadian 10 Yr Govt Bond
         '&CL_CCB':('Commodities', 'Energy', 'Petroleum', 'Petroleum', 'Crude Oil - Light Sweet'), # Crude Oil - Light Sweet
         '&CT_CCB':('Commodities','Diversified Agriculture', 'Agriculture', 'Softs', 'Cotton #2'), # Cotton #2
+        '&CRA_CCB':('Interest Rates', 'Interest Rates', 'Interest Rates', 'Interest Rates', '3M CORRA'), # 3M CORRA
         '&DC_CCB':('Commodities','Diversified Agriculture', 'Agriculture', 'Softs', 'Milk - Class III'), # Milk - Class III
         '&DX_CCB':('Currencies', 'G10 Currencies', 'G10 Currencies', 'G10 Currencies', 'Benchmark'), # US Dollar Index
         '&EH_CCB':('Commodities', 'Energy', 'Petroleum', 'Petroleum', 'Ethanol'), # Ethanol
         '&EMD_CCB':('Equity Indices', 'Equity Indices','Equity Indices','Equity Indices', 'S&P MidCap 400 E-mini'), # S&P MidCap 400 E-mini
         '&ES_CCB':('Equity Indices', 'Equity Indices','Equity Indices','Equity Indices', 'S&P 500 E-mini'), # S&P 500 E-mini
+        '&ETH_CCB':('Equity Indices', 'Equity Indices','Equity Indices','Equity Indices', 'Ether'), # Ether
         '&EUA_CCB':('Commodities', 'Energy', 'Energy', 'Energy', 'EUA (Carbon Emissions)'), # EUA (Carbon Emissions)
         '&FBTP_CCB':('Bonds','Government Bonds','Government Bonds','Government Bonds', 'Euro-BTP Long Term'), # Euro-BTP Long Term
         '&FCE_CCB':('Equity Indices', 'Equity Indices','Equity Indices','Equity Indices', 'CAC 40'), # CAC 40
@@ -35,8 +37,8 @@ sectmap = {
         '&FGBM_CCB':('Bonds','Government Bonds','Government Bonds','Government Bonds', 'Euro-Bobl - 5 Yr'), # Euro-Bobl - 5 Yr
         '&FGBS_CCB':('Bonds','Government Bonds','Government Bonds','Government Bonds', 'Euro-Schatz - 2 Yr'), # Euro-Schatz - 2 Yr
         '&FGBX_CCB':('Bonds','Government Bonds','Government Bonds','Government Bonds', 'Euro-Buxl - 30 Yr'), # Euro-Buxl - 30 Yr
-        '&FOAT_CCB':('Interest Rates', 'Interest Rates', 'Interest Rates', 'Interest Rates', 'Euro-OAT Continuous Contract'), # Euro-OAT Continuous Contract
-        '&FOAT9_CCB':('Interest Rates', 'Interest Rates', 'Interest Rates', 'Interest Rates', 'Euro-OAT(L) Continuous Contract'), # Euro-OAT(L) Continuous Contract
+        '&FOAT_CCB':('Interest Rates', 'Interest Rates', 'Interest Rates', 'Interest Rates', 'Euro-OAT Continuous Contract'), # Euro-OAT
+        '&FOAT9_CCB':('Interest Rates', 'Interest Rates', 'Interest Rates', 'Interest Rates', 'Euro-OAT(L) Continuous Contract'), # Euro-OAT(L)
         '&FSMI_CCB':('Equity Indices', 'Equity Indices','Equity Indices','Equity Indices', 'Swiss Market Index'), # Swiss Market Index
         '&FTDX_CCB':('Equity Indices', 'Equity Indices','Equity Indices','Equity Indices', 'TecDAX'), # TecDAX
         '&GAS_CCB':('Commodities', 'Energy', 'Energy', 'Energy', 'Gas Oil'), # Gas Oil
@@ -54,6 +56,7 @@ sectmap = {
         '&KE_CCB':('Commodities','Diversified Agriculture', 'Agriculture', 'Grains', 'KC HRW Wheat'), # KC HRW Wheat
         '&KOS_CCB':('Equity Indices', 'Equity Indices','Equity Indices','Equity Indices', 'KOSPI 200'), # KOSPI 200
         '&LBS_CCB':('Commodities','Diversified Agriculture', 'Agriculture', 'Softs', 'Lumber'), # Lumber
+        '&LBR_CCB':('Commodities','Diversified Agriculture', 'Agriculture', 'Softs', 'Lumber'), # Lumber
         '&LCC_CCB':('Commodities','Diversified Agriculture', 'Agriculture', 'Softs', 'London Cocoa'), # London Cocoa
         '&LE_CCB':('Commodities','Diversified Agriculture', 'Livestock', 'Livestock', 'Live Cattle'), # Live Cattle
         '&LES_CCB':('Interest Rates', 'Interest Rates', 'Interest Rates', 'Interest Rates', 'Euro Swiss'), # Euro Swiss
@@ -66,6 +69,12 @@ sectmap = {
         '&LSS_CCB':('Interest Rates', 'Interest Rates', 'Interest Rates', 'Interest Rates', 'Short Sterling'), # Short Sterling
         '&LSU_CCB':('Commodities','Diversified Agriculture', 'Agriculture', 'Softs', 'White Sugar'), # White Sugar
         '&LWB_CCB':('Commodities','Diversified Agriculture', 'Agriculture', 'Grains', 'Feed Wheat'), # Feed Wheat
+        '&M2K_CCB':('Equity Indices', 'Equity Indices','Equity Indices','Equity Indices', 'Micro Russell 2000 E-mini'), # Micro Russell 2000 E-mini
+        '&MBT_CCB':('Equity Indices', 'Equity Indices','Equity Indices','Equity Indices', 'Micro Bitcoin E-mini'), # Micro Bitcoin E-mini
+        '&MES_CCB':('Equity Indices', 'Equity Indices','Equity Indices','Equity Indices', 'Micro S&P 500 E-mini'), # Micro S&P 500 E-mini
+        '&MET_CCB':('Equity Indices', 'Equity Indices','Equity Indices','Equity Indices', 'Micro Ether E-mini'), # Micro Ether E-mini
+        '&MYM_CCB':('Equity Indices', 'Equity Indices','Equity Indices','Equity Indices', 'Micro DJIA E-mini'), # Micro DJIA E-mini
+        '&MNQ_CCB':('Equity Indices', 'Equity Indices','Equity Indices','Equity Indices', 'Micro Nasdaq-100 E-mini'), # Micro Nasdaq-100 E-mini
         '&MHI_CCB':('Equity Indices', 'Equity Indices','Equity Indices','Equity Indices', 'Hang Seng Index'), # Hang Seng Index - Mini
         '&MWE_CCB':('Commodities','Diversified Agriculture', 'Agriculture', 'Grains', 'Hard Red Spring Wheat'), # Hard Red Spring Wheat
         '&NG_CCB':('Commodities', 'Energy', 'Energy', 'Energy', 'Henry Hub Natural Gas'), # Henry Hub Natural Gas
@@ -84,6 +93,7 @@ sectmap = {
         '&SIN_CCB':('Equity Indices', 'Equity Indices','Equity Indices','Equity Indices', 'SGX Nifty 50 Index'), # SGX Nifty 50 Index
         '&SJB_CCB':('Bonds','Government Bonds','Government Bonds','Government Bonds', 'Japanese Govt Bond - Mini'), # Japanese Govt Bond - Mini
         '&SNK_CCB':('Equity Indices', 'Equity Indices','Equity Indices','Equity Indices', 'Nikkei 225'), # Nikkei 225 (SGX)
+        '&SO3_CCB':('Interest Rates', 'Interest Rates', 'Interest Rates', 'Interest Rates', '3M SONIA'), # 3M SONIA
         '&SP_CCB':('Equity Indices', 'Equity Indices','Equity Indices','Equity Indices', 'S&P 500'), # S&P 500
         '&SR3_CCB':('Interest Rates', 'Interest Rates', 'Interest Rates', 'Interest Rates', '3M SOFR Continuous Contract'), # 3M SOFR Continuous Contract
         '&SSG_CCB':('Equity Indices', 'Equity Indices','Equity Indices','Equity Indices', 'MSCI Singapore Index'), # MSCI Singapore Index
@@ -133,6 +143,7 @@ sectmap = {
         '&CC':('Commodities','Diversified Agriculture', 'Agriculture', 'Softs', 'Cocoa'), # Cocoa
         '&CGB':('Bonds','Government Bonds','Government Bonds','Government Bonds', 'Canadian 10y'), # Canadian 10 Yr Govt Bond
         '&CL':('Commodities', 'Energy', 'Petroleum', 'Petroleum', 'Crude Oil - Light Sweet'), # Crude Oil - Light Sweet
+        '&CRA':('Interest Rates', 'Interest Rates', 'Interest Rates', 'Interest Rates', '3M CORRA'), # 3M CORRA
         '&CT':('Commodities','Diversified Agriculture', 'Agriculture', 'Softs', 'Cotton #2'), # Cotton #2
         '&DC':('Commodities','Diversified Agriculture', 'Agriculture', 'Softs', 'Milk - Class III'), # Milk - Class III
         '&DX':('Currencies', 'G10 Currencies', 'G10 Currencies', 'G10 Currencies', 'Benchmark'), # US Dollar Index
@@ -169,6 +180,7 @@ sectmap = {
         '&KE':('Commodities','Diversified Agriculture', 'Agriculture', 'Grains', 'KC HRW Wheat'), # KC HRW Wheat
         '&KOS':('Equity Indices', 'Equity Indices','Equity Indices','Equity Indices', 'KOSPI 200'), # KOSPI 200
         '&LBS':('Commodities','Diversified Agriculture', 'Agriculture', 'Softs', 'Lumber'), # Lumber
+        '&LBR':('Commodities','Diversified Agriculture', 'Agriculture', 'Softs', 'Lumber'), # Lumber
         '&LCC':('Commodities','Diversified Agriculture', 'Agriculture', 'Softs', 'London Cocoa'), # London Cocoa
         '&LE':('Commodities','Diversified Agriculture', 'Livestock', 'Livestock', 'Live Cattle'), # Live Cattle
         '&LES':('Interest Rates', 'Interest Rates', 'Interest Rates', 'Interest Rates', 'Euro Swiss'), # Euro Swiss
@@ -181,8 +193,14 @@ sectmap = {
         '&LSS':('Interest Rates', 'Interest Rates', 'Interest Rates', 'Interest Rates', 'Short Sterling'), # Short Sterling
         '&LSU':('Commodities','Diversified Agriculture', 'Agriculture', 'Softs', 'White Sugar'), # White Sugar
         '&LWB':('Commodities','Diversified Agriculture', 'Agriculture', 'Grains', 'Feed Wheat'), # Feed Wheat
+        '&M2K':('Equity Indices', 'Equity Indices','Equity Indices','Equity Indices', 'Micro Russell 2000 E-mini'), # Micro Russell 2000 E-mini
+        '&MBT':('Equity Indices', 'Equity Indices','Equity Indices','Equity Indices', 'Micro Bitcoin E-mini'), # Micro Bitcoin E-mini
+        '&MES':('Equity Indices', 'Equity Indices','Equity Indices','Equity Indices', 'Micro S&P 500 E-mini'), # Micro S&P 500 E-mini
+        '&MET':('Equity Indices', 'Equity Indices','Equity Indices','Equity Indices', 'Micro Ether E-mini'), # Micro Ether E-mini
         '&MHI':('Equity Indices', 'Equity Indices','Equity Indices','Equity Indices', 'Hang Seng Index'), # Hang Seng Index - Mini
+        '&MNQ':('Equity Indices', 'Equity Indices','Equity Indices','Equity Indices', 'Micro Nasdaq-100 E-mini'), # Micro Nasdaq-100 E-mini
         '&MWE':('Commodities','Diversified Agriculture', 'Agriculture', 'Grains', 'Hard Red Spring Wheat'), # Hard Red Spring Wheat
+        '&MYM':('Equity Indices', 'Equity Indices','Equity Indices','Equity Indices', 'Micro DJIA E-mini'), # Micro DJIA E-mini
         '&NG':('Commodities', 'Energy', 'Energy', 'Energy', 'Henry Hub Natural Gas'), # Henry Hub Natural Gas
         '&NIY':('Equity Indices', 'Equity Indices','Equity Indices','Equity Indices', 'Nikkei 225'), # Nikkei 225 Yen
         '&NKD':('Equity Indices', 'Equity Indices','Equity Indices','Equity Indices', 'Nikkei 225'), # Nikkei 225 Dollar
@@ -199,6 +217,7 @@ sectmap = {
         '&SIN':('Equity Indices', 'Equity Indices','Equity Indices','Equity Indices', 'SGX Nifty 50 Index'), # SGX Nifty 50 Index
         '&SJB':('Bonds','Government Bonds','Government Bonds','Government Bonds', 'Japanese Govt Bond - Mini'), # Japanese Govt Bond - Mini
         '&SNK':('Equity Indices', 'Equity Indices','Equity Indices','Equity Indices', 'Nikkei 225'), # Nikkei 225 (SGX)
+        '&SO3':('Interest Rates', 'Interest Rates', 'Interest Rates', 'Interest Rates', '3M SONIA'), # 3M SONIA
         '&SP':('Equity Indices', 'Equity Indices','Equity Indices','Equity Indices', 'S&P 500'), # S&P 500
         '&SR3':('Interest Rates', 'Interest Rates', 'Interest Rates', 'Interest Rates', '3M SOFR Continuous Contract'), # 3M SOFR Continuous Contract
         '&SSG':('Equity Indices', 'Equity Indices','Equity Indices','Equity Indices', 'MSCI Singapore Index'), # MSCI Singapore Index
