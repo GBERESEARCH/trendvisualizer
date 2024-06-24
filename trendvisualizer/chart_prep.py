@@ -244,7 +244,7 @@ class Formatting():
         # any NaN cells
         chart_data = chart_data.rename(
             columns=params['ticker_short_name_dict'])
-        chart_data = chart_data.fillna(method='ffill')
+        chart_data = chart_data.ffill()
 
         return chart_data
 
