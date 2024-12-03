@@ -11,7 +11,7 @@ import seaborn as sns
 from matplotlib import axes, cm
 from matplotlib.dates import MO, WeekdayLocator, MonthLocator
 from matplotlib.ticker import MaxNLocator, AutoMinorLocator, PercentFormatter
-from trendvisualizer.chart_prep import Formatting
+from trendvisdata.chart_prep import Formatting
 
 
 class Graphs():
@@ -51,7 +51,7 @@ class Graphs():
         """
 
         # Initialize the figure
-        plt.style.use('seaborn-darkgrid')
+        plt.style.use('seaborn-v0_8-darkgrid')
         plt.rcParams.update(params['mpl_bar_params'])
         num_markets = min(params['mkts'], 20)
         _, ax1 = plt.subplots(figsize=(6,int(num_markets/3)))
@@ -306,10 +306,14 @@ class Graphs():
 
         """
 
-        tenor = Formatting.create_normalized_data(params=params, tables=tables)
+        tenor = Formatting.create_normalized_data(
+            params=params, 
+            tables=tables,
+            flag='Unfiltered'
+            )
 
         # Initialize the figure
-        plt.style.use('seaborn-darkgrid')
+        plt.style.use('seaborn-v0_8-darkgrid')
         plt.rcParams.update(params['mpl_line_params'])
         plt.tight_layout()
         _, ax1 = plt.subplots(figsize=(16,8))
@@ -479,7 +483,7 @@ class Graphs():
             num_charts=params['num_charts'])
 
         # Set style
-        plt.style.use('seaborn-darkgrid')
+        plt.style.use('seaborn-v0_8-darkgrid')
         plt.rcParams.update(params['mpl_chart_params'])
 
         # create a color palette
@@ -671,7 +675,7 @@ class Graphs():
                 params=params, barometer=tables['barometer'])
 
         # sns.set_style("darkgrid", {"axes.edgecolor": "black"})
-        plt.style.use('seaborn-darkgrid')
+        plt.style.use('seaborn-v0_8-darkgrid')
         plt.rcParams.update(params['mpl_summary_params'])
 
         if params['compact']:

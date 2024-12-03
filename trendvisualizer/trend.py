@@ -4,13 +4,13 @@ results
 
 """
 import copy
-from trendvisualizer.chart_data import Data
+from trendvisdata.chart_data import Data
+from trendvisdata.sector_mappings import sectmap
+from trendvisdata.trend_data import Fields, TrendRank
+from trendvisdata.trend_params import trend_params_dict
+from trendvisdata.market_data import NorgateExtract, YahooExtract, MktUtils
 from trendvisualizer.chart_display import Graphs
 from trendvisualizer.pie_charts import PieCharts
-from trendvisualizer.sector_mappings import sectmap
-from trendvisualizer.trend_params import trend_params_dict
-from trendvisualizer.trend_data import Fields, TrendRank
-from trendvisualizer.market_data import NorgateExtract, YahooExtract, MktUtils
 
 
 class TrendStrength():

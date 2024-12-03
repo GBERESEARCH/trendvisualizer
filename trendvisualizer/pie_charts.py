@@ -42,7 +42,7 @@ class PieCharts():
         params['pie_params'] = {}
 
         # Set style
-        plt.style.use('seaborn-darkgrid')
+        plt.style.use('seaborn-v0_8-darkgrid')
         plt.rcParams.update(params['mpl_chart_params'])
         plt.tight_layout()
 
@@ -224,7 +224,7 @@ class PieCharts():
         """
 
         # Set style
-        plt.style.use('seaborn-darkgrid')
+        plt.style.use('seaborn-v0_8-darkgrid')
         plt.rcParams.update(params['mpl_chart_params'])
         plt.tight_layout()
 
@@ -387,22 +387,22 @@ class PieCharts():
 
         tables['sector_split']['long proportion'] = (
             tables['sector_split']['long']
-            / tables['sector_split']['long'][-1])
+            / tables['sector_split']['long'].iloc[-1])
 
         tables['sector_split']['neutral proportion'] = (
             tables['sector_split']['neutral']
-            / tables['sector_split']['neutral'][-1])
+            / tables['sector_split']['neutral'].iloc[-1])
 
         tables['sector_split']['short proportion'] = (
             tables['sector_split']['short']
-            / tables['sector_split']['short'][-1])
+            / tables['sector_split']['short'].iloc[-1])
 
         tables['non_zero_split_long'] = (
             tables['sector_split'][['long proportion']])
 
         tables['non_zero_split_long'] = (
             tables['non_zero_split_long'].loc[
-                (tables['non_zero_split_long']!=0).any(1)])
+                (tables['non_zero_split_long']!=0).any(axis=1)])
 
         params['pie_params']['ratios_long'] = list(
             tables['non_zero_split_long']['long proportion'][:-1])
@@ -412,7 +412,7 @@ class PieCharts():
 
         tables['non_zero_split_short'] = (
             tables['non_zero_split_short'].loc[
-                (tables['non_zero_split_short']!=0).any(1)])
+                (tables['non_zero_split_short']!=0).any(axis=1)])
 
         params['pie_params']['ratios_short'] = list(
             tables['non_zero_split_short']['short proportion'][:-1])
