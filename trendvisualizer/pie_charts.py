@@ -56,6 +56,7 @@ class PieCharts():
 
         # Initialize the graph object
         fig, ax1 = plt.subplots(figsize=(10, 8))#, facecolor='mediumaquamarine')
+        ax1.axis('off')
 
         #plt.figure(facecolor='grey')
 
