@@ -22,9 +22,9 @@ $ pip install trendvisualizer
 
 Install in a new environment using Python venv:
 
-Create base environment of Python 3.11
+Create base environment of Python 3.13
 ```
-$ py -3.11 -m venv .venv
+$ py -3.13 -m venv .venv
 ```
 Activate new environment
 ```
@@ -56,7 +56,7 @@ $ activate trendvis
 ```
 Install Python
 ```
-(trendvis) $ conda install python==3.9
+(trendvis) $ conda install python==3.13
 ```
 Install Spyder
 ```
@@ -74,11 +74,11 @@ Install trendvisualizer
 Import trend module
 
 ```
-import trendvisualizer.trend as trend
+from trendvisualizer.trend import TrendStrength
 ```
 Initialise a TrendStrength object which will extract market data, calculate indicators and trend strength
 ```
-mkt = trend.TrendStrength()
+mkt = TrendStrength()
 ```
 
 &nbsp;
