@@ -43,31 +43,6 @@ Install package
 $ (.venv) python -m pip install trendvisualizer
 ```
 
-
-&nbsp;
-
-To install in new environment using anaconda:
-```
-$ conda create --name trendvis
-```
-Activate new environment
-```
-$ activate trendvis
-```
-Install Python
-```
-(trendvis) $ conda install python==3.13
-```
-Install Spyder
-```
-(trendvis) $ conda install spyder
-```
-
-Install trendvisualizer
-```
-(trendvis) $ python -m pip install trendvisualizer
-```
-
 &nbsp;
 
 ### Setup
